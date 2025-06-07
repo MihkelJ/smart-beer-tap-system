@@ -108,7 +108,9 @@ void stopPour()
 
 void IRAM_ATTR pulseCounter()
 {
+  portENTER_CRITICAL_ISR(&spinlock);    
   pulseCount++;
+  portEXIT_CRITICAL_ISR(&spinlock);
   setLed(!digitalRead(LED_PIN));
 }
 
