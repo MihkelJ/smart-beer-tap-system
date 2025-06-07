@@ -17,6 +17,7 @@
 // Flow sensor constants
 #define DEFAULT_ML_PER_PULSE 2.222       // 450 pulses/liter ≈ 2.222ml/pulse
 float mlPerPulse = DEFAULT_ML_PER_PULSE; // Dynamic value that can be changed via Blynk
+static portMUX_TYPE spinlock = portMUX_INITIALIZER_UNLOCKED;
 
 // Safety and monitoring constants
 #define MAX_POUR_TIME 90000  // Maximum pour time in milliseconds (90 seconds)
@@ -76,7 +77,9 @@ void updateStatus(const String &status)
 
 void resetCounters()
 {
+  portENTER_CRITICAL_ISR(&spinlock);  
   pulseCount = 0;
+  portEXIT_CRITICAL_ISR(&spinlock);  
   totalVolume = 0;
 }
 
@@ -237,8 +240,9 @@ void loop()
     }
     lastBlynkConnected = blynkConnected;
   }
-
+  portENTER_CRITICAL_ISR(&spinlock);  
   totalVolume = pulseCount * mlPerPulse;
+  portEXIT_CRITICAL_ISR(&spinlock); 
 
   // Safety checks
   if (isPouring)
