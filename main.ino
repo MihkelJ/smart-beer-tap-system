@@ -3,6 +3,10 @@
 #define BLYNK_TEMPLATE_NAME ""
 #define BLYNK_AUTH_TOKEN ""
 
+// WiFi credentials
+#define WIFI_SSID ""
+#define WIFI_PASSWORD ""
+
 // Blynk virtual pins
 #define CUP_SIZE_PIN V1
 #define STATUS_PIN V2
@@ -30,10 +34,6 @@ static portMUX_TYPE spinlock = portMUX_INITIALIZER_UNLOCKED;
 
 #include <WiFi.h>
 #include <BlynkSimpleEsp32.h>
-
-// WiFi credentials
-const char *ssid = "";
-const char *password = "";
 
 // Variables
 // Pour tracking variables
@@ -200,7 +200,7 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(FLOW_SENSOR_PIN), pulseCounter, RISING);
 
   blinkRapidly(2000, "Connecting to WiFi");
-  Blynk.begin(BLYNK_AUTH_TOKEN, ssid, password);
+  Blynk.begin(BLYNK_AUTH_TOKEN, WIFI_SSID, WIFI_PASSWORD);
 
   Blynk.virtualWrite(CUP_SIZE_PIN, 0);
   Blynk.virtualWrite(ML_PER_PULSE_PIN, mlPerPulse);
