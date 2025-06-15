@@ -5,10 +5,14 @@
 [![Framework: Arduino](https://img.shields.io/badge/Framework-Arduino-00979D.svg)](https://www.arduino.cc/)
 [![IoT: Blynk](https://img.shields.io/badge/IoT-Blynk-00A0E0.svg)](https://blynk.io/)
 
-An automated beer dispensing system built with ESP32 that allows precise control over beer pouring through a Blynk mobile app interface.
+A complete automated beer dispensing system that combines ESP32-based hardware control with blockchain payment integration. The system consists of two main components:
 
-## 📋 Table of Contents
+1. **Hardware Control**: ESP32-based beer tap controller with precise volume control and safety features
+2. **Payment Integration**: Webhook service that processes blockchain payments and triggers the beer tap
 
+## Table of Contents
+
+- [System Overview](#-system-overview)
 - [Features](#-features)
 - [Hardware Requirements](#-hardware-requirements)
 - [Software Requirements](#-software-requirements)
@@ -18,8 +22,27 @@ An automated beer dispensing system built with ESP32 that allows precise control
 - [Status Indicators](#-status-indicators)
 - [Blynk Integration](#-blynk-integration)
 - [Code](#-code)
+- [Payment Integration](#-payment-integration)
 - [Contributing](#-contributing)
 - [License](#-license)
+
+## 🔄 System Overview
+
+This project is a complete solution for automated beer dispensing with blockchain payment integration. It consists of:
+
+### Hardware Component
+
+- ESP32-based controller for precise beer dispensing
+- Flow sensor for volume measurement
+- Relay control for tap operation
+- LED indicators for system status
+
+### Payment Component
+
+- [yodl-store-webhook](https://github.com/MihkelJ/yodl-store-webhook) service
+- Blockchain transaction processing
+- Automatic tap activation on successful payment
+- Support for multiple payment configurations
 
 ## ✨ Features
 
@@ -135,6 +158,34 @@ To get started with the code:
 4. Configure your credentials
 5. Upload to ESP32
 
+## 💳 Payment Integration
+
+The system integrates with blockchain payments through the [yodl-store-webhook](https://github.com/MihkelJ/yodl-store-webhook) service. This component:
+
+- Processes blockchain transaction notifications
+- Validates payment details
+- Triggers the beer tap through Blynk integration
+- Supports multiple beer taps with different configurations
+
+### Setup Steps
+
+1. Deploy the webhook service
+2. Configure your beer tap in the webhook's environment variables:
+   ```env
+   BEER_TAPS='[
+     {
+       "transactionReceiverEns": "your.ens.name",
+       "transactionMemo": "Beer",
+       "transactionCurrency": "EUR",
+       "transactionAmount": "4.2",
+       "blynkDeviceToken": "YOUR_BLYNK_TOKEN",
+       "blynkDevicePin": "V1",
+       "blynkDevicePinValue": "500"
+     }
+   ]'
+   ```
+3. Set up the Blynk device token and pin mapping
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
@@ -148,3 +199,20 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🔗 Related Projects
+
+### [yodl-store-webhook](https://github.com/MihkelJ/yodl-store-webhook)
+
+This project can be integrated with the [yodl-store-webhook](https://github.com/MihkelJ/yodl-store-webhook) to enable blockchain-based payments for beer dispensing. The webhook service:
+
+- Processes blockchain transaction notifications
+- Validates payment details
+- Triggers the beer tap through Blynk integration
+- Supports multiple beer taps with different configurations
+
+To integrate with the webhook service:
+
+1. Deploy the webhook service
+2. Configure your beer tap in the webhook's environment variables
+3. Set up the Blynk device token and pin mapping
