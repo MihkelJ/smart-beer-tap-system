@@ -50,6 +50,7 @@ bool isPouring = false;          // Pour in progress
 bool lastWifiConnected = false;  // Track last WiFi connection state
 bool lastBlynkConnected = false; // Track last Blynk connection state
 bool continuousPour = false;     // Continuous pouring mode flag
+bool enableUptimeLogging = true; // Control uptime logging, better to turn it off to optimize blynk connection
 
 // Configuration
 int currentCupSize = 0; // Target pour volume in ml
@@ -77,9 +78,9 @@ void updateStatus(const String &status)
 
 void resetCounters()
 {
-  portENTER_CRITICAL_ISR(&spinlock);  
+  portENTER_CRITICAL_ISR(&spinlock);
   pulseCount = 0;
-  portEXIT_CRITICAL_ISR(&spinlock);  
+  portEXIT_CRITICAL_ISR(&spinlock);
   totalVolume = 0;
 }
 
@@ -108,7 +109,7 @@ void stopPour()
 
 void IRAM_ATTR pulseCounter()
 {
-  portENTER_CRITICAL_ISR(&spinlock);    
+  portENTER_CRITICAL_ISR(&spinlock);
   pulseCount++;
   portEXIT_CRITICAL_ISR(&spinlock);
   setLed(!digitalRead(LED_PIN));
@@ -242,9 +243,9 @@ void loop()
     }
     lastBlynkConnected = blynkConnected;
   }
-  portENTER_CRITICAL_ISR(&spinlock);  
+  portENTER_CRITICAL_ISR(&spinlock);
   totalVolume = pulseCount * mlPerPulse;
-  portEXIT_CRITICAL_ISR(&spinlock); 
+  portEXIT_CRITICAL_ISR(&spinlock);
 
   // Safety checks
   if (isPouring)
@@ -284,13 +285,16 @@ void loop()
   static unsigned long lastStatsTime = 0;
   if (millis() - lastStatsTime > 5000)
   {
-    Serial.print("Uptime: ");
-    Serial.print((millis() - systemStartTime) / 1000);
-    Serial.print(", Total pours: ");
-    Serial.print(totalPours);
-    Serial.print(", Total volume: ");
-    Serial.print(totalVolumePoured);
-    Serial.println("ml");
+    if (enableUptimeLogging)
+    {
+      Serial.print("Uptime: ");
+      Serial.print((millis() - systemStartTime) / 1000);
+      Serial.print(", Total pours: ");
+      Serial.print(totalPours);
+      Serial.print(", Total volume: ");
+      Serial.print(totalVolumePoured);
+      Serial.println("ml");
+    }
     lastStatsTime = millis();
   }
 
