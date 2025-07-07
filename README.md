@@ -52,9 +52,7 @@ This project is a complete solution for automated beer dispensing with blockchai
   - Maximum pour time limit (90 seconds)
   - Maximum volume limit (2 liters)
   - Automatic shutoff when target volume is reached
-- **🔄 Multiple Pouring Modes**:
-  - Standard mode with preset cup sizes
-  - Continuous pour mode for manual control
+- **🎯 Standard Pouring Mode**: Preset cup sizes from 50ml to 2000ml for precise dispensing
 - **📱 Status Monitoring**:
   - Real-time pour status updates
   - LED indicators for system state
@@ -109,15 +107,99 @@ The system includes several safety mechanisms:
 
 1. Power on the system
 2. Connect to the Blynk app
-3. Select desired cup size or enable continuous pour mode
+3. Select desired cup size (50ml - 2000ml)
 4. Monitor pour status through the app
 5. System will automatically stop when target volume is reached
 
+### Normal Startup Sequence
+
+When the system boots up normally, you should see this LED pattern sequence:
+
+1. **System Start**: 1 long blink (500ms on, 500ms off) - indicates the ESP32 is starting up
+2. **Connecting**: Medium speed continuous blinking (300ms intervals) - system is connecting to WiFi and Blynk
+3. **WiFi Connected**: 2 quick blinks - WiFi connection established
+4. **Blynk Connected**: 2 quick blinks with pause - Blynk connection established  
+5. **System Ready**: 4 quick blinks - initialization complete, all systems operational
+6. **Ready State**: Slow blink every 2 seconds - normal operational state, ready for commands
+
+**Total startup time**: Typically 10-30 seconds depending on network conditions.
+
+### Troubleshooting Startup Issues
+
+If the startup sequence doesn't complete as expected:
+
+#### **Stuck on "Connecting" pattern** (continuous medium blinking)
+- **Issue**: Cannot connect to WiFi or Blynk
+- **Check**: 
+  - WiFi credentials in code are correct
+  - WiFi network is available and working
+  - Blynk auth token is valid
+  - Internet connection is stable
+- **Solution**: Verify credentials, check network, restart router if needed
+
+#### **No WiFi Connected pattern** (missing 2 quick blinks)
+- **Issue**: WiFi connection failed
+- **Check**: WiFi SSID and password in code
+- **Solution**: Update WiFi credentials and re-upload code
+
+#### **No Blynk Connected pattern** (missing 2 quick blinks with pause)
+- **Issue**: Blynk service connection failed
+- **Check**: 
+  - Blynk auth token is correct
+  - Blynk device is online in the app
+  - Internet connection allows HTTPS traffic
+- **Solution**: Verify Blynk credentials, check firewall settings
+
+#### **System never reaches Ready state** (no slow blinking)
+- **Issue**: Initialization failed
+- **Check**: Serial monitor for error messages
+- **Solution**: Check hardware connections, restart system
+
+#### **Error patterns during startup**
+- **Input Error** (short-long-short): Invalid configuration detected
+- **Network Error** (long-long-short): Network connectivity issues
+- **Critical Error** (very fast blinking): Hardware or software malfunction
+
+**Serial Monitor**: Always check the serial monitor (115200 baud) for detailed error messages and debugging information during startup.
+
 ## 📊 Status Indicators
 
-- LED blinking patterns indicate different system states
+The system uses an advanced LED pattern system to provide clear visual feedback about the current state and any issues:
+
+### LED Pattern System
+
+#### **Background Patterns** (Continuous)
+- **Ready State**: Slow blink every 2 seconds - system is ready for operation
+- **Pouring State**: Fast toggle every 250ms - actively dispensing beer
+
+#### **Event Patterns** (One-time notifications)
+- **System Start**: 1 long blink - system is starting up
+- **System Ready**: 4 quick blinks - system initialization complete
+- **Pour Complete**: 3 medium blinks - dispensing finished successfully
+- **Cup Size Change**: 2 medium blinks - new cup size selected
+
+#### **Connection Patterns**
+- **WiFi Connected**: 2 quick blinks - WiFi connection established
+- **Blynk Connected**: 2 quick blinks with pause - Blynk connection established
+
+#### **Error Patterns** (Repeating until resolved)
+- **Critical Error**: Very fast continuous blink (100ms) - system malfunction
+- **Warning**: Medium speed blink (300ms) - non-critical issues
+- **Input Error**: Short-long-short sequence - invalid settings detected
+- **Timeout Error**: Long-short-long sequence - pour timeout occurred
+- **Volume Error**: Short-short-long sequence - maximum volume exceeded
+- **Network Error**: Long-long-short sequence - WiFi/Blynk connection issues
+- **Sensor Error**: Short-long-long sequence - flow sensor problems
+
+#### **Pattern Priority**
+- Error patterns interrupt background patterns
+- Event patterns play once then return to background
+- Critical errors take precedence over warnings
+- System maintains visual feedback even during network issues
+
+### Additional Status Sources
 - Blynk app provides real-time status updates
-- Serial monitor shows detailed system statistics
+- Serial monitor shows detailed system statistics and error logs
 
 ## 📱 Blynk Integration
 
@@ -128,17 +210,15 @@ The system includes several safety mechanisms:
 | Cup Size (V1)        | Value Display | 0-2000 ml        | Target pour volume      |
 | Status (V2)          | Label         | Text             | System status display   |
 | Calibration (V3)     | Value Display | 1.0-5.0 ml/pulse | Flow sensor calibration |
-| Continuous Pour (V4) | Switch        | ON/OFF           | Manual control mode     |
 
 ### Setup Instructions
 
 1. Create a new device in Blynk IoT
 2. Add the widgets as specified in the table above
 3. Configure each widget with the following settings:
-   - Cup Size: Step size 50ml, Color #2196F3
+   - Cup Size: Step size 50ml, Color #2196F3, Range 0-2000ml
    - Status: Large font, Color #4CAF50
-   - Calibration: Step size 0.1, Color #FF9800
-   - Continuous Pour: Color #E91E63
+   - Calibration: Step size 0.1, Color #FF9800, Range 0.5-10.0
 
 ## 💻 Code
 
