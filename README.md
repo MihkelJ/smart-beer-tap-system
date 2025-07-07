@@ -78,21 +78,26 @@ This project is a complete solution for automated beer dispensing with blockchai
 
 ## ⚙️ Configuration
 
-Before using the system, you need to configure:
+Before using the system, you need to configure your credentials:
 
-1. Blynk credentials:
+1. **Create your configuration file**:
+   - Copy `config.h` to your project directory
+   - Edit the file with your actual credentials:
 
    ```cpp
-   #define BLYNK_TEMPLATE_ID "your_template_id"
-   #define BLYNK_TEMPLATE_NAME "your_template_name"
-   #define BLYNK_AUTH_TOKEN "your_auth_token"
+   // In config.h
+   #define BLYNK_TEMPLATE_ID "YOUR_TEMPLATE_ID_HERE"
+   #define BLYNK_TEMPLATE_NAME "YOUR_TEMPLATE_NAME_HERE"
+   #define BLYNK_AUTH_TOKEN "YOUR_AUTH_TOKEN_HERE"
+   
+   #define WIFI_SSID "YOUR_WIFI_SSID_HERE"
+   #define WIFI_PASSWORD "YOUR_WIFI_PASSWORD_HERE"
    ```
 
-2. WiFi credentials:
-   ```cpp
-   const char* ssid = "your_ssid";
-   const char* password = "your_password";
-   ```
+2. **Security Note**: 
+   - Never commit `config.h` to version control
+   - The file is already excluded in `.gitignore`
+   - Keep your credentials secure and private
 
 ## 🛡️ Safety Features
 
