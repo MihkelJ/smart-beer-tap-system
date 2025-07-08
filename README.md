@@ -10,18 +10,31 @@ A complete automated beer dispensing system that combines ESP32-based hardware c
 1. **Hardware Control**: ESP32-based beer tap controller with precise volume control and safety features
 2. **Payment Integration**: Webhook service that processes blockchain payments and triggers the beer tap
 
+## 🚀 Quick Start
+
+**New to the project? Start here:**
+
+1. **📖 [Read the Setup Guide](SETUP.md)** - Complete step-by-step instructions
+2. **⚙️ Configure your credentials** - Copy and edit `examples/config_template.h`
+3. **📱 Create Blynk app** - Follow the guide for easy setup
+4. **🔧 Upload code** - The system will validate your config automatically
+
+**Setup validation built-in!** The system checks your configuration and provides clear error messages with LED feedback.
+
+---
+
 ## Table of Contents
 
+- [Quick Start](#-quick-start)  
 - [System Overview](#-system-overview)
 - [Features](#-features)
 - [Hardware Requirements](#-hardware-requirements)
 - [Software Requirements](#-software-requirements)
-- [Configuration](#-configuration)
-- [Safety Features](#-safety-features)
-- [Usage](#-usage)
+- [Setup Process](#-setup-process)
 - [Status Indicators](#-status-indicators)
-- [Blynk Integration](#-blynk-integration)
-- [Code](#-code)
+- [Troubleshooting](#-troubleshooting)
+- [Safety Features](#-safety-features)
+- [Code Architecture](#-code-architecture)
 - [Payment Integration](#-payment-integration)
 - [Contributing](#-contributing)
 - [License](#-license)
@@ -76,28 +89,65 @@ This project is a complete solution for automated beer dispensing with blockchai
   - WiFi.h
   - BlynkSimpleEsp32.h
 
-## ⚙️ Configuration
+## ⚙️ Setup Process
 
-Before using the system, you need to configure your credentials:
+### Option 1: Guided Setup (Recommended)
 
-1. **Create your configuration file**:
-   - Copy `config.h` to your project directory
-   - Edit the file with your actual credentials:
+📖 **[Follow the complete SETUP.md guide](SETUP.md)** for step-by-step instructions with screenshots and troubleshooting.
 
-   ```cpp
-   // In config.h
-   #define BLYNK_TEMPLATE_ID "YOUR_TEMPLATE_ID_HERE"
-   #define BLYNK_TEMPLATE_NAME "YOUR_TEMPLATE_NAME_HERE"
-   #define BLYNK_AUTH_TOKEN "YOUR_AUTH_TOKEN_HERE"
-   
-   #define WIFI_SSID "YOUR_WIFI_SSID_HERE"
-   #define WIFI_PASSWORD "YOUR_WIFI_PASSWORD_HERE"
-   ```
+### Option 2: Quick Setup
 
-2. **Security Note**: 
-   - Never commit `config.h` to version control
-   - The file is already excluded in `.gitignore`
-   - Keep your credentials secure and private
+For experienced users:
+
+```bash
+# 1. Copy config template
+cp examples/config_template.h src/config.h
+
+# 2. Edit with your credentials  
+nano src/config.h
+
+# 3. Upload to ESP32
+# The system will validate your config automatically!
+```
+
+### Built-in Validation ✅
+
+The system includes **automatic configuration validation**:
+
+- ❌ **Ultra-fast red blinking** = Configuration error detected
+- ✅ **4 quick blinks** = Setup successful, system ready
+- 📊 **Serial Monitor** = Detailed error messages and instructions
+
+**No more guessing!** The system tells you exactly what's wrong and how to fix it.
+
+## 🚨 Troubleshooting
+
+### LED Error Patterns
+
+| LED Pattern | Problem | Solution |
+|-------------|---------|----------|
+| ⚡ **Ultra-fast blinking** | Config file error | Check `src/config.h` - follow [SETUP.md](SETUP.md) |
+| 🔄 **Medium continuous blink** | WiFi/Blynk connecting | Wait 30s, check credentials |
+| 🚫 **No LED activity** | Power/hardware issue | Check wiring, power supply |
+
+### Common Issues
+
+**"Config Error" Message:**
+- Copy template: `cp examples/config_template.h src/config.h`
+- Edit with real credentials (no placeholder text)
+- Make sure all fields are filled
+
+**WiFi Won't Connect:**
+- Use 2.4GHz network only (ESP32 limitation)
+- Check SSID/password spelling
+- Move ESP32 closer to router
+
+**Blynk Won't Connect:**
+- Verify auth token is correct
+- Check template ID matches web console
+- Ensure internet connection works
+
+🔧 **Need more help?** See the detailed [SETUP.md](SETUP.md) guide or create an issue with your Serial Monitor output.
 
 ## 🛡️ Safety Features
 

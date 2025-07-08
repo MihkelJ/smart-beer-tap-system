@@ -1,5 +1,5 @@
 # Configuration files containing sensitive credentials
-config.h
+src/config.h
 
 # IDE files
 .vscode/
@@ -16,6 +16,7 @@ Thumbs.db
 *.hex
 *.elf
 *.bin
+build/
 
 # PlatformIO
 .pio/
@@ -24,3 +25,10 @@ Thumbs.db
 
 # Arduino IDE
 *.autosave
+
+# Backup files
+*.bak
+*.orig
+
+# Cache directories
+.cache/
