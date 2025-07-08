@@ -66,6 +66,7 @@ void setup()
   Blynk.virtualWrite(CUP_SIZE_PIN, 0);
   Blynk.virtualWrite(ML_PER_PULSE_PIN, pourSystem.getMlPerPulse());
   pourSystem.updateStatus(STATUS_READY);
+  Blynk.virtualWrite(STATUS_PIN, STATUS_READY);
   
   // System ready indication
   Serial.println("");
@@ -105,6 +106,16 @@ void loop()
   
   // Update pour system (includes safety checks and pour logic)
   pourSystem.update();
+  
+  // Send status updates to Blynk if status changed
+  static String lastBlynkStatus = "";
+  String currentStatus = pourSystem.getLastStatus();
+  if (currentStatus != lastBlynkStatus && currentStatus.length() > 0)
+  {
+    Blynk.virtualWrite(STATUS_PIN, currentStatus);
+    Serial.println("📱 Status sent to Blynk: " + currentStatus);
+    lastBlynkStatus = currentStatus;
+  }
   
   // Small delay to prevent overwhelming the system
   delay(100);

@@ -46,9 +46,9 @@ void PourSystem::updateStatus(const String &status)
 {
   if (status != lastStatus)
   {
-    // Blynk.virtualWrite will be called from main file
     lastStatus = status;
     Serial.println("Status: " + status);
+    // Note: Blynk.virtualWrite() must be called from main file due to module separation
   }
 }
 

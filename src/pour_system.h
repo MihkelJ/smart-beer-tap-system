@@ -62,6 +62,7 @@ public:
   float getTotalVolume() const { return totalVolume; }
   int getCurrentCupSize() const { return currentCupSize; }
   float getMlPerPulse() const { return mlPerPulse; }
+  String getLastStatus() const { return lastStatus; }
   
   // Safety checks
   bool performSafetyChecks(bool wifiConnected, bool blynkConnected);
