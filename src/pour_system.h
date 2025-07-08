@@ -5,6 +5,7 @@
 #include <WiFi.h>
 #include "constants.h"
 #include "led_controller.h"
+#include "status_manager.h"
 
 class PourSystem
 {

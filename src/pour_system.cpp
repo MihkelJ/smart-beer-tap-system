@@ -35,6 +35,9 @@ void PourSystem::init()
   
   lastWatchdogTime = millis();
   lastStatsTime = millis();
+  
+  // Initialize status manager
+  statusManager.init();
 }
 
 void PourSystem::setRelay(bool state)
@@ -70,6 +73,7 @@ void PourSystem::startPour()
   }
 
   isPouring = true;
+  statusManager.setBusy();
   setRelay(false);
   ledController.setPattern(LED_POURING, true); // Set as background pattern
   updateStatus(STATUS_POURING);
@@ -95,6 +99,7 @@ void PourSystem::stopPour()
   resetCounters();
   isPouring = false;
   isReady = true;
+  statusManager.setReady();
   // Blynk.virtualWrite(CUP_SIZE_PIN, 0) will be called from main file
 }
 
@@ -112,6 +117,7 @@ void PourSystem::emergencyStop()
     isPouring = false;
     isReady = true;
     currentCupSize = 0;  // Reset cup size
+    statusManager.setReady();
     
     // Set ready pattern after brief error indication
     ledController.setPattern(LED_READY, true);
@@ -140,6 +146,7 @@ void PourSystem::handleCupSizeChange(int value)
     setRelay(true);
     ledController.setLed(false);
     isPouring = false;
+    statusManager.setReady();
   }
   else
   {
@@ -148,6 +155,7 @@ void PourSystem::handleCupSizeChange(int value)
     {
       updateStatus("Error: Invalid cup size " + String(value) + "ml");
       ledController.blinkRapidly(1000, "Invalid cup size");
+      statusManager.setBusy();
       return;
     }
     currentCupSize = value;
@@ -155,6 +163,7 @@ void PourSystem::handleCupSizeChange(int value)
     isPouring = false; // Reset pouring state
     resetCounters();   // Reset counters for new pour
     ledController.blinkCount(2, "Cup size changed to " + String(currentCupSize) + "ml");
+    statusManager.setBusy();
   }
 }
 

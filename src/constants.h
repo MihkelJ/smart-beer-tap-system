@@ -6,6 +6,7 @@
 #define STATUS_PIN V2
 #define ML_PER_PULSE_PIN V3
 #define STOP_BUTTON_PIN V4
+#define READY_BUSY_PIN V5
 
 // Hardware pins
 #define LED_PIN 2

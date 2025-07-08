@@ -21,6 +21,7 @@
 #include "src/pour_system.h"
 #include "src/network_manager.h"
 #include "src/config_validator.h"
+#include "src/status_manager.h"
 
 void setup()
 {
@@ -67,6 +68,9 @@ void setup()
   Blynk.virtualWrite(ML_PER_PULSE_PIN, pourSystem.getMlPerPulse());
   pourSystem.updateStatus(STATUS_READY);
   Blynk.virtualWrite(STATUS_PIN, STATUS_READY);
+  
+  // Set system ready after successful initialization
+  statusManager.setReady();
   
   // System ready indication
   Serial.println("");
@@ -115,6 +119,16 @@ void loop()
     Blynk.virtualWrite(STATUS_PIN, currentStatus);
     Serial.println("📱 Status sent to Blynk: " + currentStatus);
     lastBlynkStatus = currentStatus;
+  }
+  
+  // Send ready/busy status updates to Blynk if changed
+  static int lastReadyBusyStatus = -1;
+  int currentReadyBusyStatus = statusManager.isReady() ? 1 : 0;
+  if (currentReadyBusyStatus != lastReadyBusyStatus)
+  {
+    Blynk.virtualWrite(READY_BUSY_PIN, currentReadyBusyStatus);
+    Serial.println("📱 Ready/Busy status sent to Blynk: " + String(currentReadyBusyStatus == 1 ? "READY" : "BUSY"));
+    lastReadyBusyStatus = currentReadyBusyStatus;
   }
   
   // Small delay to prevent overwhelming the system
