@@ -15,7 +15,7 @@ void StatusManager::init()
   systemReady = false;
   portEXIT_CRITICAL(&spinlock);
   
-  syncToBlynk();
+  syncToThingsBoard();
   Serial.println("Status Manager initialized - System BUSY");
 }
 
@@ -56,15 +56,15 @@ void StatusManager::setStatus(bool ready)
   
   if (changed)
   {
-    syncToBlynk();
+    syncToThingsBoard();
     Serial.print("System status changed to: ");
     Serial.println(ready ? "READY" : "BUSY");
   }
 }
 
-void StatusManager::syncToBlynk()
+void StatusManager::syncToThingsBoard()
 {
   int statusValue = isReady() ? 1 : 0;
-  // Note: Blynk.virtualWrite() must be called from main file due to module separation
+  // Note: ThingsBoard telemetry must be sent from main file due to module separation
   // This will be handled by the main loop checking for status changes
 }

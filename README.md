@@ -319,7 +319,7 @@ The system integrates with blockchain payments through the [yodl-store-webhook](
      }
    ]'
    ```
-3. Set up the Blynk device token and pin mapping
+3. Set up the ThingsBoard device token and RPC method mapping
 
 ## 🤝 Contributing
 

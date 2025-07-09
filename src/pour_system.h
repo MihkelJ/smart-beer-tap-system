@@ -50,7 +50,7 @@ public:
   // Status management
   void updateStatus(const String &status);
   
-  // Blynk handlers
+  // ThingsBoard RPC handlers
   void handleCupSizeChange(int value);
   void handleMlPerPulseChange(float value);
   
@@ -66,7 +66,7 @@ public:
   String getLastStatus() const { return lastStatus; }
   
   // Safety checks
-  bool performSafetyChecks(bool wifiConnected, bool blynkConnected);
+  bool performSafetyChecks(bool wifiConnected, bool thingsBoardConnected);
   void checkSensorHealth();
 };
 

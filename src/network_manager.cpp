@@ -1,42 +1,42 @@
 #include "network_manager.h"
 
-// Blynk functions will be called from main file
+// ThingsBoard functions will be called from main file
 
 // Global instance
-BlynkNetworkManager networkManager;
+ThingsBoardNetworkManager networkManager;
 
-BlynkNetworkManager::BlynkNetworkManager()
+ThingsBoardNetworkManager::ThingsBoardNetworkManager()
 {
   lastWifiConnected = false;
-  lastBlynkConnected = false;
+  lastThingsBoardConnected = false;
 }
 
-void BlynkNetworkManager::init()
+void ThingsBoardNetworkManager::init()
 {
   // Show connecting pattern
   ledController.setPattern(LED_ERROR_WARNING); // Use warning pattern for connecting
   Serial.println("Status: Connecting to WiFi");
-  // Blynk.begin will be called from main file
+  // ThingsBoard.connect will be called from main file
 }
 
-void BlynkNetworkManager::initializeBlynkValues(float mlPerPulse)
+void ThingsBoardNetworkManager::initializeThingsBoardValues(float mlPerPulse)
 {
-  // Blynk initialization will be called from main file
-  Serial.println("Initializing Blynk values");
+  // ThingsBoard initialization will be called from main file
+  Serial.println("Initializing ThingsBoard values");
 }
 
-bool BlynkNetworkManager::isWifiConnected() const
+bool ThingsBoardNetworkManager::isWifiConnected() const
 {
   return (WiFi.status() == WL_CONNECTED);
 }
 
-bool BlynkNetworkManager::isBlynkConnected() const
+bool ThingsBoardNetworkManager::isThingsBoardConnected() const
 {
-  // Blynk.connected() will be checked from main file
+  // ThingsBoard.connected() will be checked from main file
   return true; // Placeholder - will be managed by main file
 }
 
-void BlynkNetworkManager::handleWifiStatusChange()
+void ThingsBoardNetworkManager::handleWifiStatusChange()
 {
   bool wifiConnected = isWifiConnected();
   if (wifiConnected != lastWifiConnected)
@@ -54,12 +54,12 @@ void BlynkNetworkManager::handleWifiStatusChange()
   }
 }
 
-void BlynkNetworkManager::handleBlynkStatusChange(int currentCupSize, float mlPerPulse)
+void ThingsBoardNetworkManager::handleThingsBoardStatusChange(int currentCupSize, float mlPerPulse)
 {
-  // Blynk status handling removed - no more spam messages
+  // ThingsBoard status handling removed - no more spam messages
 }
 
-void BlynkNetworkManager::update()
+void ThingsBoardNetworkManager::update()
 {
-  // Blynk.run() will be called from main file
+  // ThingsBoard.loop() will be called from main file
 }

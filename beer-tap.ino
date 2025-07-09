@@ -8,7 +8,7 @@
  * Key Features:
  * - Precise volume control with flow sensor
  * - Visual feedback through LED patterns
- * - Remote control via Blynk IoT platform
+ * - Remote control via ThingsBoard IoT platform
  * - Comprehensive safety systems
  * - WiFi connectivity with auto-reconnection
  */
@@ -16,12 +16,48 @@
 // Include configuration and modules
 #include "src/config.h"
 #include "src/constants.h"
-#include <BlynkSimpleEsp32.h>
+#include <WiFi.h>
+#include <Arduino_MQTT_Client.h>
+#include <Server_Side_RPC.h>
+#include <ThingsBoard.h>
 #include "src/led_controller.h"
 #include "src/pour_system.h"
 #include "src/network_manager.h"
 #include "src/config_validator.h"
 #include "src/status_manager.h"
+
+// Initialize ThingsBoard client
+WiFiClient espClient;
+Arduino_MQTT_Client mqttClient(espClient);
+constexpr size_t MAX_RPC_SUBSCRIPTIONS = 3U;
+constexpr size_t MAX_RPC_RESPONSE = 256U;
+Server_Side_RPC<MAX_RPC_SUBSCRIPTIONS, MAX_RPC_RESPONSE> rpc;
+IAPI_Implementation* apis[1U] = {
+  &rpc
+};
+ThingsBoard tb(mqttClient, 256U, 256U, 1024U, apis + 0U, apis + 1U);
+
+// Connection state tracking
+bool thingsBoardConnected = false;
+bool rpcSubscribed = false;
+unsigned long lastConnectionAttempt = 0;
+const unsigned long CONNECTION_RETRY_INTERVAL = 5000; // 5 seconds
+const unsigned long CONNECTION_TIMEOUT = 10000; // 10 seconds timeout for connection attempt
+
+// Helper macro for array size
+#define COUNT_OF(x) ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
+
+// Forward declarations
+void processCupSizeChange(const JsonVariantConst &data, JsonDocument &response);
+void processMlPerPulseChange(const JsonVariantConst &data, JsonDocument &response);
+void processStopCommand(const JsonVariantConst &data, JsonDocument &response);
+
+// RPC callback array
+const RPC_Callback callbacks[] = {
+  {TB_SET_CUP_SIZE_RPC, processCupSizeChange},
+  {TB_SET_ML_PER_PULSE_RPC, processMlPerPulseChange},
+  {TB_STOP_POUR_RPC, processStopCommand}
+};
 
 void setup()
 {
@@ -55,19 +91,35 @@ void setup()
   // Initialize pour system
   pourSystem.init();
   
-  // Initialize network connectivity
+  // Initialize network connectivity and connect to WiFi
   networkManager.init();
   
-  // Start Blynk connection
-  Serial.println("📡 Connecting to Blynk...");
-  Blynk.begin(BLYNK_AUTH_TOKEN, WIFI_SSID, WIFI_PASSWORD);
+  // Connect to WiFi first
+  Serial.println("📡 Connecting to WiFi...");
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   
-  // Initialize Blynk values to safe defaults
-  networkManager.initializeBlynkValues(pourSystem.getMlPerPulse());
-  Blynk.virtualWrite(CUP_SIZE_PIN, 0);
-  Blynk.virtualWrite(ML_PER_PULSE_PIN, pourSystem.getMlPerPulse());
-  pourSystem.updateStatus(STATUS_READY);
-  Blynk.virtualWrite(STATUS_PIN, STATUS_READY);
+  // Wait for WiFi connection with timeout
+  int wifiTimeout = 30; // 30 seconds
+  while (WiFi.status() != WL_CONNECTED && wifiTimeout > 0) {
+    delay(1000);
+    Serial.print(".");
+    wifiTimeout--;
+  }
+  
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println();
+    Serial.println("❌ Failed to connect to WiFi!");
+    ledController.setPattern(LED_ERROR_NETWORK);
+    return;
+  }
+  
+  Serial.println();
+  Serial.println("✅ WiFi connected!");
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+  
+  // ThingsBoard connection will be handled in loop()
+  Serial.println("📡 WiFi ready, ThingsBoard connection will be attempted in main loop...");
   
   // Set system ready after successful initialization
   statusManager.setReady();
@@ -76,7 +128,7 @@ void setup()
   Serial.println("");
   Serial.println("✅ SETUP COMPLETE!");
   Serial.println("🍺 Smart Beer Tap ready for operation");
-  Serial.println("📱 Use your Blynk app to control the tap");
+  Serial.println("📱 Use your ThingsBoard dashboard to control the tap");
   Serial.println("");
   
   ledController.blinkCount(4, "System ready for operation");
@@ -95,8 +147,67 @@ void loop()
     return;
   }
   
-  // Normal operation - run all systems
-  Blynk.run();
+  // Handle ThingsBoard connection
+  if (WiFi.status() == WL_CONNECTED) {
+    if (!thingsBoardConnected) {
+      // Try to connect to ThingsBoard
+      if (millis() - lastConnectionAttempt > CONNECTION_RETRY_INTERVAL) {
+        Serial.println("📡 Attempting to connect to ThingsBoard...");
+        Serial.print("Server: ");
+        Serial.println(THINGSBOARD_SERVER);
+        Serial.print("Token: ");
+        Serial.println(String(THINGSBOARD_ACCESS_TOKEN).substring(0, 8) + "...");
+        
+        // Set connection timeout
+        unsigned long connectionStart = millis();
+        bool connectionResult = false;
+        
+        // Try connection with timeout
+        while (millis() - connectionStart < CONNECTION_TIMEOUT) {
+          if (tb.connect(THINGSBOARD_SERVER, THINGSBOARD_ACCESS_TOKEN)) {
+            connectionResult = true;
+            break;
+          }
+          delay(100);
+          // Feed watchdog during connection attempt
+          pourSystem.checkWatchdog();
+        }
+        
+        if (connectionResult) {
+          Serial.println("✅ ThingsBoard connected!");
+          thingsBoardConnected = true;
+          
+          // Subscribe to RPC commands
+          if (rpc.RPC_Subscribe(callbacks + 0U, callbacks + COUNT_OF(callbacks))) {
+            Serial.println("✅ RPC subscriptions successful!");
+            rpcSubscribed = true;
+            
+            // Send initial telemetry
+            tb.sendTelemetryData(TB_CUP_SIZE_TELEMETRY, 0);
+            tb.sendTelemetryData(TB_ML_PER_PULSE_TELEMETRY, pourSystem.getMlPerPulse());
+            tb.sendTelemetryData(TB_STATUS_TELEMETRY, STATUS_READY);
+            tb.sendTelemetryData(TB_READY_BUSY_TELEMETRY, 1);
+          } else {
+            Serial.println("❌ RPC subscription failed!");
+          }
+        } else {
+          Serial.println("❌ ThingsBoard connection failed, retrying...");
+          Serial.print("WiFi Status: ");
+          Serial.println(WiFi.status());
+          Serial.print("IP Address: ");
+          Serial.println(WiFi.localIP());
+        }
+        lastConnectionAttempt = millis();
+      }
+    } else {
+      // Already connected, run normal loop
+      tb.loop();
+    }
+  } else {
+    // WiFi disconnected, reset ThingsBoard connection
+    thingsBoardConnected = false;
+    rpcSubscribed = false;
+  }
   
   // Check system watchdog
   pourSystem.checkWatchdog();
@@ -106,60 +217,88 @@ void loop()
   
   // Check network status and handle reconnections
   networkManager.handleWifiStatusChange();
-  networkManager.handleBlynkStatusChange(pourSystem.getCurrentCupSize(), pourSystem.getMlPerPulse());
+  networkManager.handleThingsBoardStatusChange(pourSystem.getCurrentCupSize(), pourSystem.getMlPerPulse());
   
   // Update pour system (includes safety checks and pour logic)
   pourSystem.update();
   
-  // Send status updates to Blynk if status changed
-  static String lastBlynkStatus = "";
-  String currentStatus = pourSystem.getLastStatus();
-  if (currentStatus != lastBlynkStatus && currentStatus.length() > 0)
-  {
-    Blynk.virtualWrite(STATUS_PIN, currentStatus);
-    Serial.println("📱 Status sent to Blynk: " + currentStatus);
-    lastBlynkStatus = currentStatus;
-  }
-  
-  // Send ready/busy status updates to Blynk if changed
-  static int lastReadyBusyStatus = -1;
-  int currentReadyBusyStatus = statusManager.isReady() ? 1 : 0;
-  if (currentReadyBusyStatus != lastReadyBusyStatus)
-  {
-    Blynk.virtualWrite(READY_BUSY_PIN, currentReadyBusyStatus);
-    Serial.println("📱 Ready/Busy status sent to Blynk: " + String(currentReadyBusyStatus == 1 ? "READY" : "BUSY"));
-    lastReadyBusyStatus = currentReadyBusyStatus;
+  // Send status updates to ThingsBoard if connected and status changed
+  if (thingsBoardConnected) {
+    static String lastTbStatus = "";
+    String currentStatus = pourSystem.getLastStatus();
+    if (currentStatus != lastTbStatus && currentStatus.length() > 0)
+    {
+      tb.sendTelemetryData(TB_STATUS_TELEMETRY, currentStatus);
+      Serial.println("📱 Status sent to ThingsBoard: " + currentStatus);
+      
+      // Reset cup size display when pour completes
+      if (currentStatus == STATUS_COMPLETE) {
+        tb.sendTelemetryData(TB_CUP_SIZE_TELEMETRY, 0);
+        Serial.println("📱 Cup size reset to 0 after pour completion");
+      }
+      
+      lastTbStatus = currentStatus;
+    }
+    
+    // Send ready/busy status updates to ThingsBoard if changed
+    static int lastReadyBusyStatus = -1;
+    int currentReadyBusyStatus = statusManager.isReady() ? 1 : 0;
+    if (currentReadyBusyStatus != lastReadyBusyStatus)
+    {
+      tb.sendTelemetryData(TB_READY_BUSY_TELEMETRY, currentReadyBusyStatus);
+      Serial.println("📱 Ready/Busy status sent to ThingsBoard: " + String(currentReadyBusyStatus == 1 ? "READY" : "BUSY"));
+      lastReadyBusyStatus = currentReadyBusyStatus;
+    }
   }
   
   // Small delay to prevent overwhelming the system
   delay(100);
 }
 
-// Blynk event handlers - these need to be in the main file for Blynk to find them
+// ThingsBoard RPC callback handlers
 
-BLYNK_WRITE(CUP_SIZE_PIN)
+void processCupSizeChange(const JsonVariantConst &data, JsonDocument &response)
 {
-  int value = param.asInt();
-  Serial.print("📱 Blynk received cup size: ");
+  int value = data.as<int>();
+  Serial.print("📱 ThingsBoard received cup size: ");
   Serial.print(value);
   Serial.println("ml");
   pourSystem.handleCupSizeChange(value);
+  
+  // Send telemetry update to ThingsBoard
+  if (thingsBoardConnected) {
+    tb.sendTelemetryData(TB_CUP_SIZE_TELEMETRY, value);
+    Serial.println("📱 Cup size telemetry sent to ThingsBoard: " + String(value) + "ml");
+  }
+  
+  response.set(value);
 }
 
-BLYNK_WRITE(ML_PER_PULSE_PIN)
+void processMlPerPulseChange(const JsonVariantConst &data, JsonDocument &response)
 {
-  float value = param.asFloat();
+  float value = data.as<float>();
   pourSystem.handleMlPerPulseChange(value);
+  
+  // Send telemetry update to ThingsBoard
+  if (thingsBoardConnected) {
+    tb.sendTelemetryData(TB_ML_PER_PULSE_TELEMETRY, value);
+    Serial.println("📱 ML per pulse telemetry sent to ThingsBoard: " + String(value));
+  }
+  
+  response.set(value);
 }
 
-BLYNK_WRITE(STOP_BUTTON_PIN)
+void processStopCommand(const JsonVariantConst &data, JsonDocument &response)
 {
-  int value = param.asInt();
+  int value = data.as<int>();
   if (value == 1)  // Button pressed (only act on press, not release)
   {
     pourSystem.emergencyStop();
     // Reset cup size display on dashboard
-    Blynk.virtualWrite(CUP_SIZE_PIN, 0);
-    Serial.println("📱 Dashboard cup size reset to 0");
+    if (thingsBoardConnected) {
+      tb.sendTelemetryData(TB_CUP_SIZE_TELEMETRY, 0);
+      Serial.println("📱 Dashboard cup size reset to 0");
+    }
   }
+  response.set("stopped");
 }

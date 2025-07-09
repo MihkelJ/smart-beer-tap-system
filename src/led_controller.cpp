@@ -160,7 +160,7 @@ void LedController::update()
   }
   break;
 
-  case LED_BLYNK_CONNECT:
+  case LED_THINGSBOARD_CONNECT:
   {
     int intervals[] = {150, 150, 300, 150, 150, 1000}; // 2 quick blinks with pause
     if (state.stepIndex < 6)
@@ -338,7 +338,7 @@ void LedController::blinkRapidly(int duration, String reason)
   {
     setPattern(LED_ERROR_VOLUME);
   }
-  else if (reason.indexOf("WiFi") >= 0 || reason.indexOf("Blynk") >= 0)
+  else if (reason.indexOf("WiFi") >= 0 || reason.indexOf("ThingsBoard") >= 0)
   {
     setPattern(LED_ERROR_NETWORK);
   }
@@ -370,9 +370,9 @@ void LedController::blinkCount(int count, String reason)
     {
       setPattern(LED_WIFI_CONNECT);
     }
-    else if (reason.indexOf("Blynk") >= 0)
+    else if (reason.indexOf("ThingsBoard") >= 0)
     {
-      setPattern(LED_BLYNK_CONNECT);
+      setPattern(LED_THINGSBOARD_CONNECT);
     }
     else
     {

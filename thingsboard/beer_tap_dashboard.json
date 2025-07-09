@@ -1,0 +1,458 @@
+{
+  "title": "Beer Tap dashboard",
+  "image": null,
+  "mobileHide": false,
+  "mobileOrder": null,
+  "configuration": {
+    "description": "",
+    "widgets": {
+      "1a00e99c-80bc-950d-7aa0-e251a2534da1": {
+        "typeFullFqn": "system.command_button",
+        "type": "rpc",
+        "sizeX": 3,
+        "sizeY": 1,
+        "config": {
+          "showTitle": false,
+          "backgroundColor": "rgba(255, 255, 255, 0)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "onClickState": {
+              "action": "EXECUTE_RPC",
+              "executeRpc": {
+                "method": "setCupSize",
+                "requestTimeout": 5000,
+                "requestPersistent": false,
+                "persistentPollingInterval": 1000
+              },
+              "setAttribute": {
+                "scope": "SERVER_SCOPE",
+                "key": "state"
+              },
+              "putTimeSeries": {
+                "key": "state"
+              },
+              "valueToData": {
+                "type": "CONSTANT",
+                "constantValue": 250,
+                "valueToDataFunction": "/* Return RPC parameters or attribute/time-series value */\nreturn true;"
+              }
+            },
+            "disabledState": {
+              "action": "DO_NOTHING",
+              "defaultValue": false,
+              "getAttribute": {
+                "key": "state",
+                "scope": null
+              },
+              "getTimeSeries": {
+                "key": "state"
+              },
+              "getAlarmStatus": {
+                "severityList": null,
+                "typeList": null
+              },
+              "dataToValue": {
+                "type": "NONE",
+                "compareToValue": true,
+                "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
+              }
+            },
+            "appearance": {
+              "type": "outlined",
+              "showLabel": true,
+              "label": "🍺 Small (250ml)",
+              "showIcon": true,
+              "icon": "sports_bar",
+              "iconSize": 24,
+              "iconSizeUnit": "px",
+              "mainColor": "#4caf50",
+              "backgroundColor": "#e8f5e8",
+              "autoScale": true,
+              "customStyle": {
+                "enabled": null,
+                "hovered": null,
+                "pressed": null,
+                "activated": null,
+                "disabled": null
+              }
+            }
+          },
+          "title": "Command button",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "actions": {},
+          "widgetCss": "",
+          "noDataDisplayMessage": "",
+          "titleFont": {
+            "size": 12,
+            "sizeUnit": "px",
+            "family": null,
+            "weight": null,
+            "style": null,
+            "lineHeight": "1.6"
+          },
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "pageSize": 1024,
+          "titleIcon": "",
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "14px",
+          "configMode": "basic",
+          "borderRadius": "4px",
+          "datasources": [],
+          "targetDevice": {
+            "type": "device",
+            "deviceId": "00df6c60-5d04-11f0-9d02-c191323b4da2"
+          }
+        },
+        "row": 0,
+        "col": 0,
+        "id": "1a00e99c-80bc-950d-7aa0-e251a2534da1"
+      },
+      "3b963ea4-6946-6319-f49b-26451962225a": {
+        "typeFullFqn": "system.command_button",
+        "type": "rpc",
+        "sizeX": 3,
+        "sizeY": 1,
+        "config": {
+          "showTitle": false,
+          "backgroundColor": "rgba(255, 255, 255, 0)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "onClickState": {
+              "action": "EXECUTE_RPC",
+              "executeRpc": {
+                "method": "setCupSize",
+                "requestTimeout": 5000,
+                "requestPersistent": false,
+                "persistentPollingInterval": 1000
+              },
+              "setAttribute": {
+                "scope": "SERVER_SCOPE",
+                "key": "state"
+              },
+              "putTimeSeries": {
+                "key": "state"
+              },
+              "valueToData": {
+                "type": "CONSTANT",
+                "constantValue": 500,
+                "valueToDataFunction": "/* Return RPC parameters or attribute/time-series value */\nreturn true;"
+              }
+            },
+            "disabledState": {
+              "action": "DO_NOTHING",
+              "defaultValue": false,
+              "getAttribute": {
+                "key": "state",
+                "scope": null
+              },
+              "getTimeSeries": {
+                "key": "state"
+              },
+              "getAlarmStatus": {
+                "severityList": null,
+                "typeList": null
+              },
+              "dataToValue": {
+                "type": "NONE",
+                "compareToValue": true,
+                "dataToValueFunction": "/* Should return boolean value */\nreturn data;"
+              }
+            },
+            "appearance": {
+              "type": "outlined",
+              "showLabel": true,
+              "label": "🍺 Large (500ml)",
+              "showIcon": true,
+              "icon": "sports_bar",
+              "iconSize": 24,
+              "iconSizeUnit": "px",
+              "mainColor": "#4caf50",
+              "backgroundColor": "#e8f5e8",
+              "autoScale": true,
+              "customStyle": {
+                "enabled": null,
+                "hovered": null,
+                "pressed": null,
+                "activated": null,
+                "disabled": null
+              }
+            }
+          },
+          "title": "Command button",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "widgetStyle": {},
+          "actions": {},
+          "widgetCss": "",
+          "noDataDisplayMessage": "",
+          "titleFont": {
+            "size": 12,
+            "sizeUnit": "px",
+            "family": null,
+            "weight": null,
+            "style": null,
+            "lineHeight": "1.6"
+          },
+          "showTitleIcon": false,
+          "titleTooltip": "",
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "pageSize": 1024,
+          "titleIcon": "",
+          "iconColor": "rgba(0, 0, 0, 0.87)",
+          "iconSize": "14px",
+          "configMode": "basic",
+          "borderRadius": "4px",
+          "datasources": [],
+          "targetDevice": {
+            "type": "device",
+            "deviceId": "00df6c60-5d04-11f0-9d02-c191323b4da2"
+          }
+        },
+        "row": 0,
+        "col": 0,
+        "id": "3b963ea4-6946-6319-f49b-26451962225a"
+      },
+      "b825d83d-1398-bfd4-da8c-930deffba58d": {
+        "typeFullFqn": "system.cards.attributes_card",
+        "type": "latest",
+        "sizeX": 7.5,
+        "sizeY": 3,
+        "config": {
+          "datasources": [
+            {
+              "type": "device",
+              "name": "",
+              "deviceId": "00df6c60-5d04-11f0-9d02-c191323b4da2",
+              "dataKeys": [
+                {
+                  "name": "cupSize",
+                  "type": "timeseries",
+                  "label": "Cup Size (ml)",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.3150685329494237
+                },
+                {
+                  "name": "ready",
+                  "type": "timeseries",
+                  "label": "System Status",
+                  "color": "#4caf50",
+                  "settings": {
+                    "valueToText": "return data === 1 ? 'READY' : 'BUSY';",
+                    "textColor": "return data === 1 ? '#4caf50' : '#ff9800';"
+                  },
+                  "_hash": 0.8450583668130257
+                },
+                {
+                  "name": "status",
+                  "type": "timeseries",
+                  "label": "Current Status",
+                  "color": "#f44336",
+                  "settings": {},
+                  "_hash": 0.35543809179276287
+                }
+              ],
+              "alarmFilterConfig": {
+                "statusList": [
+                  "ACTIVE"
+                ]
+              }
+            }
+          ],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideQuickInterval": false
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1752012649614,
+                "endTimeMs": 1752099049614
+              },
+              "quickInterval": "CURRENT_DAY",
+              "hideInterval": false,
+              "hideLastInterval": false,
+              "hideFixedInterval": false,
+              "hideQuickInterval": false
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 25000
+            }
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {},
+          "title": "System Status",
+          "decimals": null,
+          "useDashboardTimewindow": true,
+          "displayTimewindow": true
+        },
+        "row": 0,
+        "col": 0,
+        "id": "b825d83d-1398-bfd4-da8c-930deffba58d"
+      },
+      "emergency-stop-button": {
+        "typeFullFqn": "system.command_button",
+        "type": "rpc",
+        "sizeX": 6,
+        "sizeY": 1,
+        "config": {
+          "showTitle": false,
+          "backgroundColor": "rgba(255, 255, 255, 0)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "0px",
+          "settings": {
+            "onClickState": {
+              "action": "EXECUTE_RPC",
+              "executeRpc": {
+                "method": "stopPour",
+                "requestTimeout": 5000,
+                "requestPersistent": false,
+                "persistentPollingInterval": 1000
+              },
+              "valueToData": {
+                "type": "CONSTANT",
+                "constantValue": 1
+              }
+            },
+            "appearance": {
+              "type": "raised",
+              "showLabel": true,
+              "label": "🛑 EMERGENCY STOP",
+              "showIcon": true,
+              "icon": "stop",
+              "iconSize": 24,
+              "iconSizeUnit": "px",
+              "mainColor": "#f44336",
+              "backgroundColor": "#ffebee",
+              "autoScale": true
+            }
+          },
+          "targetDevice": {
+            "type": "device",
+            "deviceId": "00df6c60-5d04-11f0-9d02-c191323b4da2"
+          }
+        },
+        "row": 0,
+        "col": 0,
+        "id": "emergency-stop-button"
+      }
+    },
+    "states": {
+      "default": {
+        "name": "h",
+        "root": true,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "1a00e99c-80bc-950d-7aa0-e251a2534da1": {
+                "sizeX": 3,
+                "sizeY": 1,
+                "row": 0,
+                "col": 0
+              },
+              "3b963ea4-6946-6319-f49b-26451962225a": {
+                "sizeX": 3,
+                "sizeY": 1,
+                "row": 0,
+                "col": 3
+              },
+              "emergency-stop-button": {
+                "sizeX": 6,
+                "sizeY": 1,
+                "row": 1,
+                "col": 0
+              },
+              "b825d83d-1398-bfd4-da8c-930deffba58d": {
+                "sizeX": 7,
+                "sizeY": 3,
+                "row": 2,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "layoutType": "default",
+              "backgroundColor": "#eeeeee",
+              "columns": 24,
+              "margin": 10,
+              "outerMargin": true,
+              "backgroundSizeMode": "100%"
+            }
+          }
+        }
+      }
+    },
+    "entityAliases": {},
+    "filters": {},
+    "timewindow": {
+      "displayValue": "",
+      "hideAggregation": false,
+      "hideAggInterval": false,
+      "hideTimezone": false,
+      "selectedTab": 0,
+      "realtime": {
+        "realtimeType": 0,
+        "interval": 1000,
+        "timewindowMs": 60000,
+        "quickInterval": "CURRENT_DAY",
+        "hideInterval": false,
+        "hideLastInterval": false,
+        "hideQuickInterval": false
+      },
+      "history": {
+        "historyType": 0,
+        "interval": 1000,
+        "timewindowMs": 60000,
+        "fixedTimewindow": {
+          "startTimeMs": 1752010487547,
+          "endTimeMs": 1752096887547
+        },
+        "quickInterval": "CURRENT_DAY",
+        "hideInterval": false,
+        "hideLastInterval": false,
+        "hideFixedInterval": false,
+        "hideQuickInterval": false
+      },
+      "aggregation": {
+        "type": "AVG",
+        "limit": 25000
+      }
+    },
+    "settings": {
+      "stateControllerId": "entity",
+      "showTitle": false,
+      "showDashboardsSelect": true,
+      "showEntitiesSelect": true,
+      "showDashboardTimewindow": true,
+      "showDashboardExport": true,
+      "toolbarAlwaysOpen": true
+    }
+  },
+  "name": "Beer Tap dashboard",
+  "resources": []
+}

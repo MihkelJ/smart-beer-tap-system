@@ -22,7 +22,7 @@ public:
   
 private:
   void setStatus(bool ready);
-  void syncToBlynk();
+  void syncToThingsBoard();
 };
 
 extern StatusManager statusManager;

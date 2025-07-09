@@ -18,7 +18,7 @@ public:
   bool isConfigValid() const { return hasValidConfig; }
   
 private:
-  bool checkBlynkCredentials();
+  bool checkThingsBoardCredentials();
   bool checkWiFiCredentials();
   bool containsPlaceholder(const String& value);
   void setError(const String& error);

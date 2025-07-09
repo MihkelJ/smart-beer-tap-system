@@ -1,12 +1,14 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
-// Blynk virtual pins
-#define CUP_SIZE_PIN V1
-#define STATUS_PIN V2
-#define ML_PER_PULSE_PIN V3
-#define STOP_BUTTON_PIN V4
-#define READY_BUSY_PIN V5
+// ThingsBoard telemetry keys and RPC commands
+#define TB_CUP_SIZE_TELEMETRY "cupSize"
+#define TB_STATUS_TELEMETRY "status"
+#define TB_ML_PER_PULSE_TELEMETRY "mlPerPulse"
+#define TB_READY_BUSY_TELEMETRY "ready"
+#define TB_SET_CUP_SIZE_RPC "setCupSize"
+#define TB_SET_ML_PER_PULSE_RPC "setMlPerPulse"
+#define TB_STOP_POUR_RPC "stopPour"
 
 // Hardware pins
 #define LED_PIN 2

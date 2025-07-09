@@ -17,8 +17,8 @@ bool ConfigValidator::validateConfiguration()
   
   Serial.println("=== Configuration Validation ===");
   
-  // Check Blynk credentials
-  if (!checkBlynkCredentials())
+  // Check ThingsBoard credentials
+  if (!checkThingsBoardCredentials())
   {
     return false;
   }
@@ -33,51 +33,45 @@ bool ConfigValidator::validateConfiguration()
   return true;
 }
 
-bool ConfigValidator::checkBlynkCredentials()
+bool ConfigValidator::checkThingsBoardCredentials()
 {
-  String templateId = String(BLYNK_TEMPLATE_ID);
-  String templateName = String(BLYNK_TEMPLATE_NAME);
-  String authToken = String(BLYNK_AUTH_TOKEN);
+  String server = String(THINGSBOARD_SERVER);
+  String accessToken = String(THINGSBOARD_ACCESS_TOKEN);
   
   // Check for placeholder values
-  if (containsPlaceholder(templateId))
+  if (containsPlaceholder(server))
   {
-    setError("❌ BLYNK_TEMPLATE_ID contains placeholder text");
+    setError("❌ THINGSBOARD_SERVER contains placeholder text");
     return false;
   }
   
-  if (containsPlaceholder(templateName))
+  if (containsPlaceholder(accessToken))
   {
-    setError("❌ BLYNK_TEMPLATE_NAME contains placeholder text");
-    return false;
-  }
-  
-  if (containsPlaceholder(authToken))
-  {
-    setError("❌ BLYNK_AUTH_TOKEN contains placeholder text");
+    setError("❌ THINGSBOARD_ACCESS_TOKEN contains placeholder text");
     return false;
   }
   
   // Check format and length
-  if (templateId.length() < 5 || !templateId.startsWith("TMPL"))
+  if (server.length() < 5)
   {
-    setError("❌ BLYNK_TEMPLATE_ID format invalid (should start with TMPL)");
+    setError("❌ THINGSBOARD_SERVER too short (should be a valid URL)");
     return false;
   }
   
-  if (templateName.length() < 3)
+  if (accessToken.length() < 20)
   {
-    setError("❌ BLYNK_TEMPLATE_NAME too short");
+    setError("❌ THINGSBOARD_ACCESS_TOKEN too short (should be ~20 characters)");
     return false;
   }
   
-  if (authToken.length() < 20)
+  // Basic URL validation
+  if (!server.endsWith(".io") && !server.endsWith(".com") && !server.endsWith(".org") && server.indexOf(".") < 0)
   {
-    setError("❌ BLYNK_AUTH_TOKEN too short (should be ~32 characters)");
+    setError("❌ THINGSBOARD_SERVER format invalid (should be a valid domain)");
     return false;
   }
   
-  Serial.println("✅ Blynk credentials validated");
+  Serial.println("✅ ThingsBoard credentials validated");
   return true;
 }
 

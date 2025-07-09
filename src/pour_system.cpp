@@ -1,6 +1,6 @@
 #include "pour_system.h"
 
-// Blynk functions will be called from main file
+// ThingsBoard RPC functions will be called from main file
 
 // Global instance
 PourSystem pourSystem;
@@ -51,7 +51,7 @@ void PourSystem::updateStatus(const String &status)
   {
     lastStatus = status;
     Serial.println("Status: " + status);
-    // Note: Blynk.virtualWrite() must be called from main file due to module separation
+    // Note: ThingsBoard telemetry must be sent from main file due to module separation
   }
 }
 
@@ -99,8 +99,9 @@ void PourSystem::stopPour()
   resetCounters();
   isPouring = false;
   isReady = true;
+  currentCupSize = 0;  // Reset cup size
   statusManager.setReady();
-  // Blynk.virtualWrite(CUP_SIZE_PIN, 0) will be called from main file
+  // ThingsBoard telemetry update will be called from main file
 }
 
 void PourSystem::emergencyStop()
@@ -192,7 +193,7 @@ void PourSystem::checkWatchdog()
   lastWatchdogTime = millis();
 }
 
-bool PourSystem::performSafetyChecks(bool wifiConnected, bool blynkConnected)
+bool PourSystem::performSafetyChecks(bool wifiConnected, bool thingsBoardConnected)
 {
   // Get current pulse count safely
   portENTER_CRITICAL_ISR(&spinlock);
@@ -267,9 +268,9 @@ void PourSystem::update()
 {
   // Perform safety checks first
   bool wifiConnected = (WiFi.status() == WL_CONNECTED);
-  bool blynkConnected = true; // Will be set by main file
+  bool thingsBoardConnected = true; // Will be set by main file
   
-  if (!performSafetyChecks(wifiConnected, blynkConnected))
+  if (!performSafetyChecks(wifiConnected, thingsBoardConnected))
   {
     return; // Safety check failed, exit early
   }
@@ -285,10 +286,11 @@ void PourSystem::update()
       Serial.println("Error: Invalid cup size for pour start");
       updateStatus("Error: Invalid cup size");
       isReady = true; // Reset to ready state
+      statusManager.setReady(); // Sync status manager
       return;
     }
 
-    if (!wifiConnected || !blynkConnected)
+    if (!wifiConnected || !thingsBoardConnected)
     {
       Serial.println("Warning: Starting pour without network connection");
       updateStatus("Warning: No network connection");
