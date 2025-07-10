@@ -1,390 +1,230 @@
 #include "led_controller.h"
 
-// Global instance
-LedController ledController;
-
-LedController::LedController()
-{
-  state = {LED_OFF, LED_OFF, 0, 0, 0, false, false};
+LEDController::LEDController() {
+  // Initialize single LED state
+  led = {LED_SYSTEM_PIN, LED_OFF, false, 0, 0, 0, false};
+  currentState = STATE_BOOTING;
+  priorityState = STATE_BOOTING;
+  priorityStateEnd = 0;
 }
 
-void LedController::init()
-{
-  pinMode(LED_PIN, OUTPUT);
-  setLed(false);
+void LEDController::begin() {
+  // Initialize LED pin as output
+  pinMode(led.pin, OUTPUT);
+  digitalWrite(led.pin, LOW);
+
+  // Test pattern on startup
+  testPattern();
 }
 
-void LedController::setLed(bool ledState)
-{
-  digitalWrite(LED_PIN, ledState);
-  state.ledPhysicalState = ledState;
-}
-
-void LedController::setPattern(LedPattern pattern, bool isBackground)
-{
-  if (isBackground)
-  {
-    state.backgroundPattern = pattern;
-  }
-  else
-  {
-    state.currentPattern = pattern;
-    state.patternStartTime = millis();
-    state.stepIndex = 0;
-    state.patternActive = true;
-  }
-}
-
-void LedController::update()
-{
+void LEDController::update() {
   unsigned long currentTime = millis();
-  LedPattern activePattern = state.currentPattern != LED_OFF ? state.currentPattern : state.backgroundPattern;
 
-  if (activePattern == LED_OFF)
-  {
-    setLed(false);
-    return;
+  // Check if priority state has expired
+  if (priorityStateEnd > 0 && currentTime > priorityStateEnd) {
+    priorityStateEnd = 0;
+    priorityState = currentState;
   }
 
-  // Pattern timing definitions
-  switch (activePattern)
-  {
-  case LED_SOLID_ON:
-    setLed(true);
-    break;
+  // Use priority state if active, otherwise use current state
+  SystemState activeState = (priorityStateEnd > 0) ? priorityState : currentState;
+  led.pattern = getPatternForState(activeState);
 
-  case LED_READY:
-    if (currentTime - state.lastUpdate > 2000)
-    {
-      setLed(!state.ledPhysicalState);
-      state.lastUpdate = currentTime;
-    }
-    break;
+  // Update LED pattern
+  updateLEDPattern();
+}
 
-  case LED_POURING:
-    if (currentTime - state.lastUpdate > 250)
-    {
-      setLed(!state.ledPhysicalState);
-      state.lastUpdate = currentTime;
-    }
-    break;
+void LEDController::updateLEDPattern() {
+  unsigned long currentTime = millis();
 
-  case LED_POUR_COMPLETE:
-  {
-    int intervals[] = {200, 200, 200, 200, 200, 200, 1000}; // 3 blinks + pause
-    if (state.stepIndex < 7)
-    {
-      if (currentTime - state.lastUpdate > intervals[state.stepIndex])
-      {
-        setLed(state.stepIndex % 2 == 0);
-        state.lastUpdate = currentTime;
-        state.stepIndex++;
+  switch (led.pattern) {
+    case LED_OFF:
+      setLEDState(false);
+      break;
+
+    case LED_SOLID:
+      setLEDState(true);
+      break;
+
+    case LED_BLINK_SLOW:
+      if (currentTime - led.lastUpdate >= 1000) {
+        led.isOn = !led.isOn;
+        setLEDState(led.isOn);
+        led.lastUpdate = currentTime;
       }
-    }
-    else
-    {
-      state.currentPattern = LED_OFF;
-    }
-  }
-  break;
+      break;
 
-  case LED_SYSTEM_START:
-    if (currentTime - state.patternStartTime < 500)
-    {
-      setLed(true);
-    }
-    else if (currentTime - state.patternStartTime < 1000)
-    {
-      setLed(false);
-    }
-    else
-    {
-      state.currentPattern = LED_OFF;
-    }
-    break;
-
-  case LED_SYSTEM_READY:
-  {
-    int intervals[] = {150, 150, 150, 150, 150, 150, 150, 150, 1000}; // 4 quick blinks
-    if (state.stepIndex < 9)
-    {
-      if (currentTime - state.lastUpdate > intervals[state.stepIndex])
-      {
-        setLed(state.stepIndex % 2 == 0);
-        state.lastUpdate = currentTime;
-        state.stepIndex++;
+    case LED_BLINK_FAST:
+      if (currentTime - led.lastUpdate >= 250) {
+        led.isOn = !led.isOn;
+        setLEDState(led.isOn);
+        led.lastUpdate = currentTime;
       }
-    }
-    else
-    {
-      state.currentPattern = LED_OFF;
-    }
-  }
-  break;
+      break;
 
-  case LED_CUP_SIZE_CHANGE:
-  {
-    int intervals[] = {200, 200, 200, 200, 1000}; // 2 medium blinks
-    if (state.stepIndex < 5)
-    {
-      if (currentTime - state.lastUpdate > intervals[state.stepIndex])
-      {
-        setLed(state.stepIndex % 2 == 0);
-        state.lastUpdate = currentTime;
-        state.stepIndex++;
+    case LED_DOUBLE_BLINK:
+      if (currentTime - led.lastUpdate >= 150) {
+        if (led.blinkCount < 4) {  // 2 blinks = 4 state changes
+          led.isOn = !led.isOn;
+          setLEDState(led.isOn);
+          led.blinkCount++;
+        } else {
+          // Pause between double blinks
+          if (currentTime - led.lastUpdate >= 1000) {
+            led.blinkCount = 0;
+            led.isOn = false;
+            setLEDState(false);
+          }
+        }
+        led.lastUpdate = currentTime;
       }
-    }
-    else
-    {
-      state.currentPattern = LED_OFF;
-    }
-  }
-  break;
+      break;
 
-  case LED_WIFI_CONNECT:
-  {
-    int intervals[] = {150, 150, 150, 150, 1000}; // 2 quick blinks
-    if (state.stepIndex < 5)
-    {
-      if (currentTime - state.lastUpdate > intervals[state.stepIndex])
-      {
-        setLed(state.stepIndex % 2 == 0);
-        state.lastUpdate = currentTime;
-        state.stepIndex++;
+    case LED_TRIPLE_BLINK:
+      if (currentTime - led.lastUpdate >= 150) {
+        if (led.blinkCount < 6) {  // 3 blinks = 6 state changes
+          led.isOn = !led.isOn;
+          setLEDState(led.isOn);
+          led.blinkCount++;
+        } else {
+          // Pause between triple blinks
+          if (currentTime - led.lastUpdate >= 1000) {
+            led.blinkCount = 0;
+            led.isOn = false;
+            setLEDState(false);
+          }
+        }
+        led.lastUpdate = currentTime;
       }
-    }
-    else
-    {
-      state.currentPattern = LED_OFF;
-    }
-  }
-  break;
+      break;
 
-  case LED_BLYNK_CONNECT:
-  {
-    int intervals[] = {150, 150, 300, 150, 150, 1000}; // 2 quick blinks with pause
-    if (state.stepIndex < 6)
-    {
-      if (currentTime - state.lastUpdate > intervals[state.stepIndex])
-      {
-        setLed(state.stepIndex % 2 == 0 && state.stepIndex != 2);
-        state.lastUpdate = currentTime;
-        state.stepIndex++;
+    case LED_QUADRUPLE_BLINK:
+      if (currentTime - led.lastUpdate >= 150) {
+        if (led.blinkCount < 8) {  // 4 blinks = 8 state changes
+          led.isOn = !led.isOn;
+          setLEDState(led.isOn);
+          led.blinkCount++;
+        } else {
+          // Pause between quadruple blinks
+          if (currentTime - led.lastUpdate >= 1000) {
+            led.blinkCount = 0;
+            led.isOn = false;
+            setLEDState(false);
+          }
+        }
+        led.lastUpdate = currentTime;
       }
-    }
-    else
-    {
-      state.currentPattern = LED_OFF;
-    }
-  }
-  break;
+      break;
 
-  case LED_ERROR_CRITICAL:
-    if (currentTime - state.lastUpdate > 100)
-    {
-      setLed(!state.ledPhysicalState);
-      state.lastUpdate = currentTime;
-    }
-    break;
-
-  case LED_ERROR_WARNING:
-    if (currentTime - state.lastUpdate > 300)
-    {
-      setLed(!state.ledPhysicalState);
-      state.lastUpdate = currentTime;
-    }
-    break;
-
-  case LED_ERROR_INPUT:
-  {
-    int intervals[] = {100, 100, 300, 100, 100, 100, 1000}; // Short-long-short + pause
-    if (state.stepIndex < 7)
-    {
-      if (currentTime - state.lastUpdate > intervals[state.stepIndex])
-      {
-        setLed(state.stepIndex % 2 == 0);
-        state.lastUpdate = currentTime;
-        state.stepIndex++;
+    case LED_PULSE_SLOW:
+      if (currentTime - led.lastUpdate >= 500) {
+        led.isOn = !led.isOn;
+        setLEDState(led.isOn);
+        led.lastUpdate = currentTime;
       }
-    }
-    else
-    {
-      state.stepIndex = 0;
-      state.lastUpdate = currentTime;
-    }
-  }
-  break;
+      break;
 
-  case LED_ERROR_TIMEOUT:
-  {
-    int intervals[] = {300, 100, 100, 100, 300, 100, 1000}; // Long-short-long + pause
-    if (state.stepIndex < 7)
-    {
-      if (currentTime - state.lastUpdate > intervals[state.stepIndex])
-      {
-        setLed(state.stepIndex % 2 == 0);
-        state.lastUpdate = currentTime;
-        state.stepIndex++;
+    case LED_PULSE_FAST:
+      if (currentTime - led.lastUpdate >= 100) {
+        led.isOn = !led.isOn;
+        setLEDState(led.isOn);
+        led.lastUpdate = currentTime;
       }
-    }
-    else
-    {
-      state.stepIndex = 0;
-      state.lastUpdate = currentTime;
-    }
-  }
-  break;
+      break;
 
-  case LED_ERROR_VOLUME:
-  {
-    int intervals[] = {100, 100, 100, 100, 300, 100, 1000}; // Short-short-long + pause
-    if (state.stepIndex < 7)
-    {
-      if (currentTime - state.lastUpdate > intervals[state.stepIndex])
-      {
-        setLed(state.stepIndex % 2 == 0);
-        state.lastUpdate = currentTime;
-        state.stepIndex++;
+    case LED_HEARTBEAT:
+      // Heartbeat pattern: quick double pulse then pause
+      if (currentTime - led.lastUpdate >= 100) {
+        if (led.blinkCount < 4) {  // 2 quick pulses
+          led.isOn = !led.isOn;
+          setLEDState(led.isOn);
+          led.blinkCount++;
+        } else {
+          // Long pause between heartbeats
+          if (currentTime - led.lastUpdate >= 1500) {
+            led.blinkCount = 0;
+            led.isOn = false;
+            setLEDState(false);
+          }
+        }
+        led.lastUpdate = currentTime;
       }
-    }
-    else
-    {
-      state.stepIndex = 0;
-      state.lastUpdate = currentTime;
-    }
-  }
-  break;
-
-  case LED_ERROR_NETWORK:
-  {
-    int intervals[] = {300, 100, 300, 100, 100, 100, 1000}; // Long-long-short + pause
-    if (state.stepIndex < 7)
-    {
-      if (currentTime - state.lastUpdate > intervals[state.stepIndex])
-      {
-        setLed(state.stepIndex % 2 == 0);
-        state.lastUpdate = currentTime;
-        state.stepIndex++;
-      }
-    }
-    else
-    {
-      state.stepIndex = 0;
-      state.lastUpdate = currentTime;
-    }
-  }
-  break;
-
-  case LED_ERROR_SENSOR:
-  {
-    int intervals[] = {100, 100, 300, 100, 300, 100, 1000}; // Short-long-long + pause
-    if (state.stepIndex < 7)
-    {
-      if (currentTime - state.lastUpdate > intervals[state.stepIndex])
-      {
-        setLed(state.stepIndex % 2 == 0);
-        state.lastUpdate = currentTime;
-        state.stepIndex++;
-      }
-    }
-    else
-    {
-      state.stepIndex = 0;
-      state.lastUpdate = currentTime;
-    }
-  }
-  break;
-
-  case LED_CONFIG_ERROR:
-    // Ultra fast blinking for config errors
-    if (currentTime - state.lastUpdate > 50)
-    {
-      setLed(!state.ledPhysicalState);
-      state.lastUpdate = currentTime;
-    }
-    break;
-
-  case LED_SETUP_MODE:
-  {
-    // Breathing pattern using sine wave
-    unsigned long breathCycle = (currentTime / 10) % 628; // 0-628 (~2*PI*100)
-    float intensity = (sin(breathCycle / 100.0) + 1.0) / 2.0; // 0.0 to 1.0
-    
-    // Simple PWM-like effect by varying blink rate
-    int blinkInterval = 20 + (int)(80 * intensity); // 20ms to 100ms
-    if (currentTime - state.lastUpdate > blinkInterval)
-    {
-      setLed(!state.ledPhysicalState);
-      state.lastUpdate = currentTime;
-    }
-  }
-  break;
-
-  default:
-    setLed(false);
-    break;
+      break;
   }
 }
 
-void LedController::blinkRapidly(int duration, String reason)
-{
-  Serial.println("Status: " + reason);
-  // Use appropriate error pattern based on reason
-  if (reason.indexOf("timeout") >= 0)
-  {
-    setPattern(LED_ERROR_TIMEOUT);
-  }
-  else if (reason.indexOf("volume") >= 0)
-  {
-    setPattern(LED_ERROR_VOLUME);
-  }
-  else if (reason.indexOf("WiFi") >= 0 || reason.indexOf("Blynk") >= 0)
-  {
-    setPattern(LED_ERROR_NETWORK);
-  }
-  else if (reason.indexOf("Invalid") >= 0)
-  {
-    setPattern(LED_ERROR_INPUT);
-  }
-  else if (reason.indexOf("sensor") >= 0)
-  {
-    setPattern(LED_ERROR_SENSOR);
-  }
-  else
-  {
-    setPattern(LED_ERROR_CRITICAL);
+void LEDController::setLEDState(bool on) {
+  if (led.state != on) {
+    led.state = on;
+    digitalWrite(led.pin, on ? HIGH : LOW);
   }
 }
 
-void LedController::blinkCount(int count, String reason)
-{
-  Serial.println("Status: " + reason);
-  // Use appropriate pattern based on count and reason
-  if (count == 1)
-  {
-    setPattern(LED_SYSTEM_START);
+LEDPattern LEDController::getPatternForState(SystemState state) {
+  switch (state) {
+    case STATE_BOOTING:
+      return LED_BLINK_FAST;
+    case STATE_WIFI_PORTAL_ACTIVE:
+      return LED_DOUBLE_BLINK;  // Portal waiting for connection
+    case STATE_WIFI_PORTAL_CONFIG:
+      return LED_TRIPLE_BLINK;  // User actively configuring
+    case STATE_WIFI_CONNECTING:
+      return LED_BLINK_FAST;  // Fast blink during connection
+    case STATE_WIFI_CONNECTED:
+      return LED_HEARTBEAT;  // Heartbeat when connected
+    case STATE_WIFI_FAILED:
+      return LED_BLINK_SLOW;  // Slow blink for failed connection
+    case STATE_TB_CONNECTING:
+      return LED_TRIPLE_BLINK;  // ThingsBoard connecting
+    case STATE_TB_CONNECTED:
+      return LED_SOLID;  // Solid when fully connected
+    case STATE_TB_FAILED:
+      return LED_QUADRUPLE_BLINK;  // 4 blinks for TB failure
+    case STATE_SYSTEM_READY:
+      return LED_SOLID;  // Solid when ready
+    case STATE_POURING:
+      return LED_PULSE_SLOW;  // Slow pulse during pour
+    case STATE_POUR_COMPLETE:
+      return LED_PULSE_FAST;  // Fast pulse when complete
+    case STATE_ERROR:
+      return LED_BLINK_SLOW;  // Slow blink for errors
+    case STATE_CONFIG_ERROR:
+      return LED_TRIPLE_BLINK;  // Triple blink for config errors
+    default:
+      return LED_OFF;
   }
-  else if (count == 2)
-  {
-    if (reason.indexOf("WiFi") >= 0)
-    {
-      setPattern(LED_WIFI_CONNECT);
-    }
-    else if (reason.indexOf("Blynk") >= 0)
-    {
-      setPattern(LED_BLYNK_CONNECT);
-    }
-    else
-    {
-      setPattern(LED_CUP_SIZE_CHANGE);
-    }
-  }
-  else if (count == 3)
-  {
-    setPattern(LED_POUR_COMPLETE);
-  }
-  else if (count == 4)
-  {
-    setPattern(LED_SYSTEM_READY);
-  }
+}
+
+void LEDController::setState(SystemState state) {
+  currentState = state;
+  led.lastUpdate = millis();
+  led.blinkCount = 0;
+}
+
+void LEDController::setTemporaryState(SystemState state, unsigned long durationMs) {
+  priorityState = state;
+  priorityStateEnd = millis() + durationMs;
+  led.lastUpdate = millis();
+  led.blinkCount = 0;
+}
+
+void LEDController::setOff() {
+  setState(STATE_BOOTING);  // Will result in LED_OFF pattern
+  led.pattern = LED_OFF;
+  setLEDState(false);
+}
+
+void LEDController::testPattern() {
+  // Quick test pattern on startup
+  setLEDState(true);
+  delay(200);
+  setLEDState(false);
+  delay(100);
+  setLEDState(true);
+  delay(200);
+  setLEDState(false);
+  delay(100);
+  setLEDState(true);
+  delay(500);
+  setLEDState(false);
 }

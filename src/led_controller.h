@@ -4,59 +4,67 @@
 #include <Arduino.h>
 #include "constants.h"
 
-// LED Pattern definitions
-enum LedPattern
-{
-  LED_OFF,
-  LED_SOLID_ON,
-  LED_READY,           // Slow single blink every 2 seconds
-  LED_POURING,         // Fast continuous toggle
-  LED_POUR_COMPLETE,   // 3 medium blinks
-  LED_SYSTEM_START,    // 1 long blink
-  LED_SYSTEM_READY,    // 4 quick blinks
-  LED_CUP_SIZE_CHANGE, // 2 medium blinks
-  LED_WIFI_CONNECT,    // 2 quick blinks
-  LED_BLYNK_CONNECT,   // 2 quick blinks with pause
-  LED_CONFIG_ERROR,    // Ultra fast red blinking - config validation failed
-  LED_SETUP_MODE,      // Breathing pattern for setup guidance
-  LED_ERROR_CRITICAL,  // Very fast continuous blink
-  LED_ERROR_WARNING,   // Medium speed blink
-  LED_ERROR_INPUT,     // Short-long-short pattern
-  LED_ERROR_TIMEOUT,   // Long-short-long pattern
-  LED_ERROR_VOLUME,    // Short-short-long pattern
-  LED_ERROR_NETWORK,   // Long-long-short pattern
-  LED_ERROR_SENSOR     // Short-long-long pattern
+// LED patterns for different system states
+enum LEDPattern {
+  LED_OFF,              // LED off
+  LED_SOLID,            // LED solid on - System ready
+  LED_BLINK_SLOW,       // Slow blink (1 second on/off) - General error
+  LED_BLINK_FAST,       // Fast blink (0.25 seconds on/off) - Booting/Connecting
+  LED_DOUBLE_BLINK,     // Double blink pattern - WiFi issues
+  LED_TRIPLE_BLINK,     // Triple blink pattern - Configuration error
+  LED_QUADRUPLE_BLINK,  // Quadruple blink pattern - ThingsBoard issues
+  LED_PULSE_SLOW,       // Slow pulse - Pour in progress
+  LED_PULSE_FAST,       // Fast pulse - Pour complete
+  LED_HEARTBEAT         // Heartbeat pattern - Normal operation
 };
 
-struct LedState
-{
-  LedPattern currentPattern;
-  LedPattern backgroundPattern;
-  unsigned long lastUpdate;
-  unsigned long patternStartTime;
-  int stepIndex;
-  bool ledPhysicalState;
-  bool patternActive;
+// System states for LED indication
+enum SystemState {
+  STATE_BOOTING,             // System starting up
+  STATE_WIFI_PORTAL_ACTIVE,  // WiFi provisioning portal active
+  STATE_WIFI_PORTAL_CONFIG,  // User configuring WiFi in portal
+  STATE_WIFI_CONNECTING,     // Connecting to WiFi
+  STATE_WIFI_CONNECTED,      // WiFi connected
+  STATE_WIFI_FAILED,         // WiFi connection failed
+  STATE_TB_CONNECTING,       // Connecting to ThingsBoard
+  STATE_TB_CONNECTED,        // ThingsBoard connected
+  STATE_TB_FAILED,           // ThingsBoard connection failed
+  STATE_SYSTEM_READY,        // System ready for operation
+  STATE_POURING,             // Pour in progress
+  STATE_POUR_COMPLETE,       // Pour completed
+  STATE_ERROR,               // System error
+  STATE_CONFIG_ERROR         // Configuration error
 };
 
-class LedController
-{
-private:
-  LedState state;
-  
-public:
-  LedController();
-  void init();
-  void setPattern(LedPattern pattern, bool isBackground = false);
+class LEDController {
+ private:
+  struct LEDState {
+    uint8_t pin;
+    LEDPattern pattern;
+    bool state;
+    unsigned long lastUpdate;
+    uint8_t blinkCount;
+    uint8_t maxBlinks;
+    bool isOn;
+  };
+
+  LEDState led;  // Single LED
+  SystemState currentState;
+  SystemState priorityState;  // For temporary high-priority states
+  unsigned long priorityStateEnd;
+
+  void updateLEDPattern();
+  void setLEDState(bool on);
+  LEDPattern getPatternForState(SystemState state);
+
+ public:
+  LEDController();
+  void begin();
   void update();
-  void setLed(bool ledState);
-  
-  // Legacy function support for existing code
-  void blinkRapidly(int duration, String reason);
-  void blinkCount(int count, String reason);
+  void setState(SystemState state);
+  void setTemporaryState(SystemState state, unsigned long durationMs);
+  void setOff();
+  void testPattern();  // Test LED
 };
 
-// Global instance
-extern LedController ledController;
-
-#endif // LED_CONTROLLER_H
+#endif  // LED_CONTROLLER_H
