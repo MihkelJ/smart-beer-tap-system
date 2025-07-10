@@ -7,7 +7,6 @@ PourSystem pourSystem;
 
 // Static member definitions
 portMUX_TYPE PourSystem::spinlock = portMUX_INITIALIZER_UNLOCKED;
-unsigned long PourSystem::lastPulseTime = 0;
 
 PourSystem::PourSystem()
 {

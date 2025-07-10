@@ -23,7 +23,6 @@ private:
 
   // Timing variables
   unsigned long lastWatchdogTime;
-  static unsigned long lastPulseTime;
 
 public:
   PourSystem();
