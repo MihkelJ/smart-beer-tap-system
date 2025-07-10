@@ -14,7 +14,7 @@ void StatusManager::init()
   portENTER_CRITICAL(&spinlock);
   systemReady = false;
   portEXIT_CRITICAL(&spinlock);
-  
+
   syncToThingsBoard();
   Serial.println("Status Manager initialized - System BUSY");
 }
@@ -45,7 +45,7 @@ void StatusManager::setBusy()
 void StatusManager::setStatus(bool ready)
 {
   bool changed = false;
-  
+
   portENTER_CRITICAL(&spinlock);
   if (systemReady != ready)
   {
@@ -53,7 +53,7 @@ void StatusManager::setStatus(bool ready)
     changed = true;
   }
   portEXIT_CRITICAL(&spinlock);
-  
+
   if (changed)
   {
     syncToThingsBoard();

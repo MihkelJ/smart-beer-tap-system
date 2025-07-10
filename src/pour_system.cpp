@@ -30,12 +30,12 @@ void PourSystem::init()
   pinMode(FLOW_SENSOR_PIN, INPUT_PULLUP);
   pinMode(RELAY_PIN, OUTPUT);
   setRelay(true); // Ensure relay starts in safe state (closed)
-  
+
   attachInterrupt(digitalPinToInterrupt(FLOW_SENSOR_PIN), pulseCounter, RISING);
-  
+
   lastWatchdogTime = millis();
   lastStatsTime = millis();
-  
+
   // Initialize status manager
   statusManager.init();
 }
@@ -99,7 +99,7 @@ void PourSystem::stopPour()
   resetCounters();
   isPouring = false;
   isReady = true;
-  currentCupSize = 0;  // Reset cup size
+  currentCupSize = 0; // Reset cup size
   statusManager.setReady();
   // ThingsBoard attribute update will be called from main file
 }
@@ -108,18 +108,18 @@ void PourSystem::emergencyStop()
 {
   if (isPouring)
   {
-    setRelay(true);  // Close valve immediately
+    setRelay(true); // Close valve immediately
     ledController.blinkRapidly(1000, "Emergency stop activated");
     updateStatus("❌ Pour stopped by user");
     Serial.println("🛑 EMERGENCY STOP - Pour halted by user");
-    
+
     // Reset system state
     resetCounters();
     isPouring = false;
     isReady = true;
-    currentCupSize = 0;  // Reset cup size
+    currentCupSize = 0; // Reset cup size
     statusManager.setReady();
-    
+
     // Set ready pattern after brief error indication
     ledController.setPattern(LED_READY, true);
   }
@@ -269,12 +269,12 @@ void PourSystem::update()
   // Perform safety checks first
   bool wifiConnected = (WiFi.status() == WL_CONNECTED);
   bool thingsBoardConnected = true; // Will be set by main file
-  
+
   if (!performSafetyChecks(wifiConnected, thingsBoardConnected))
   {
     return; // Safety check failed, exit early
   }
-  
+
   // Sensor health checks removed
 
   // Enhanced pour start logic with error handling
@@ -285,7 +285,7 @@ void PourSystem::update()
     {
       Serial.println("Error: Invalid cup size for pour start");
       updateStatus("Error: Invalid cup size");
-      isReady = true; // Reset to ready state
+      isReady = true;           // Reset to ready state
       statusManager.setReady(); // Sync status manager
       return;
     }

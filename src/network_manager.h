@@ -13,17 +13,17 @@ class ThingsBoardNetworkManager
 private:
   bool lastWifiConnected;
   bool lastThingsBoardConnected;
-  
+
 public:
   ThingsBoardNetworkManager();
   void init();
   void update();
   void initializeThingsBoardValues(float mlPerPulse);
-  
+
   // Connection status
   bool isWifiConnected() const;
   bool isThingsBoardConnected() const;
-  
+
   // Connection recovery
   void handleWifiStatusChange();
   void handleThingsBoardStatusChange(int currentCupSize, float mlPerPulse);

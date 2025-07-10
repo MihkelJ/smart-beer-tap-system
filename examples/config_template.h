@@ -4,7 +4,7 @@
 // ========================================
 // BEER TAP CONFIGURATION TEMPLATE
 // ========================================
-// 
+//
 // Instructions:
 // 1. Copy this file to src/config.h
 // 2. Replace all placeholder values with your actual credentials
@@ -13,12 +13,12 @@
 
 // ThingsBoard credentials - KEEP THESE SECRET!
 // Get these from your ThingsBoard instance
-#define THINGSBOARD_SERVER "YOUR_THINGSBOARD_SERVER_HERE"     // e.g., "demo.thingsboard.io" or "your-instance.com"
-#define THINGSBOARD_ACCESS_TOKEN "YOUR_ACCESS_TOKEN_HERE"     // e.g., "your-device-access-token"
+#define THINGSBOARD_SERVER "YOUR_THINGSBOARD_SERVER_HERE" // e.g., "demo.thingsboard.io" or "your-instance.com"
+#define THINGSBOARD_ACCESS_TOKEN "YOUR_ACCESS_TOKEN_HERE" // e.g., "your-device-access-token"
 
 // WiFi credentials - KEEP THESE SECRET!
 // Your home/office WiFi network credentials
-#define WIFI_SSID "YOUR_WIFI_SSID_HERE"        // e.g., "MyHomeWiFi"
+#define WIFI_SSID "YOUR_WIFI_SSID_HERE"         // e.g., "MyHomeWiFi"
 #define WIFI_PASSWORD "YOUR_WIFI_PASSWORD_HERE" // e.g., "mySecurePassword123"
 
 // ========================================

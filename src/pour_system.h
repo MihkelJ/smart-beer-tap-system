@@ -14,49 +14,49 @@ private:
   volatile unsigned long pulseCount;
   float mlPerPulse;
   static portMUX_TYPE spinlock;
-  
+
   // Pour tracking variables
   float totalVolume;
   unsigned long pourStartTime;
   unsigned long totalPours;
   float totalVolumePoured;
-  
+
   // System state flags
   bool isReady;
   bool isPouring;
   int currentCupSize;
   String lastStatus;
-  
+
   // Timing variables
   unsigned long lastWatchdogTime;
   unsigned long lastStatsTime;
   static unsigned long lastPulseTime;
-  
+
 public:
   PourSystem();
   void init();
   void update();
   void checkWatchdog();
-  
+
   // Pour control
   void startPour();
   void stopPour();
   void emergencyStop();
   void resetCounters();
-  
+
   // Relay control
   void setRelay(bool state);
-  
+
   // Status management
   void updateStatus(const String &status);
-  
+
   // ThingsBoard RPC handlers
   void handleCupSizeChange(int value);
   void handleMlPerPulseChange(float value);
-  
+
   // Flow sensor
   static void IRAM_ATTR pulseCounter();
-  
+
   // Getters for status
   bool getIsReady() const { return isReady; }
   bool getIsPouring() const { return isPouring; }
@@ -64,7 +64,7 @@ public:
   int getCurrentCupSize() const { return currentCupSize; }
   float getMlPerPulse() const { return mlPerPulse; }
   String getLastStatus() const { return lastStatus; }
-  
+
   // Safety checks
   bool performSafetyChecks(bool wifiConnected, bool thingsBoardConnected);
   void checkSensorHealth();

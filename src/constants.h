@@ -16,7 +16,7 @@
 #define FLOW_SENSOR_PIN 27
 
 // Flow sensor constants
-#define DEFAULT_ML_PER_PULSE 2.222       // 450 pulses/liter ≈ 2.222ml/pulse
+#define DEFAULT_ML_PER_PULSE 2.222 // 450 pulses/liter ≈ 2.222ml/pulse
 
 // Safety and monitoring constants
 #define MAX_POUR_TIME 90000    // Maximum pour time in milliseconds (90 seconds)
@@ -33,8 +33,8 @@
 #define STATUS_COMPLETE "Pour Complete!"
 
 // Safety limits
-#define MAX_PULSE_COUNT 1000000  // Sanity check for pulse count
-#define MAX_VOLUME_SANITY 10000  // 10L sanity check for volume calculations
-#define SENSOR_TIMEOUT 10000     // 10 seconds without pulses indicates sensor issue
+#define MAX_PULSE_COUNT 1000000 // Sanity check for pulse count
+#define MAX_VOLUME_SANITY 10000 // 10L sanity check for volume calculations
+#define SENSOR_TIMEOUT 10000    // 10 seconds without pulses indicates sensor issue
 
 #endif // CONSTANTS_H

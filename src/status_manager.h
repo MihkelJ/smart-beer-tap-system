@@ -9,17 +9,17 @@ class StatusManager
 private:
   bool systemReady;
   static portMUX_TYPE spinlock;
-  
+
 public:
   StatusManager();
   void init();
-  
+
   bool isReady() const;
   bool isBusy() const;
-  
+
   void setReady();
   void setBusy();
-  
+
 private:
   void setStatus(bool ready);
   void syncToThingsBoard();
