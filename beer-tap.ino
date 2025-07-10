@@ -182,11 +182,11 @@ void loop()
             Serial.println("✅ RPC subscriptions successful!");
             rpcSubscribed = true;
             
-            // Send initial telemetry
-            tb.sendTelemetryData(TB_CUP_SIZE_TELEMETRY, 0);
-            tb.sendTelemetryData(TB_ML_PER_PULSE_TELEMETRY, pourSystem.getMlPerPulse());
-            tb.sendTelemetryData(TB_STATUS_TELEMETRY, STATUS_READY);
-            tb.sendTelemetryData(TB_READY_BUSY_TELEMETRY, 1);
+            // Send initial attributes
+            tb.sendAttributeData("cupSize", 0);
+            tb.sendAttributeData("status", STATUS_READY);
+            tb.sendAttributeData("ready", 1);
+            tb.sendAttributeData("mlPerPulse", pourSystem.getMlPerPulse());
           } else {
             Serial.println("❌ RPC subscription failed!");
           }
@@ -228,12 +228,12 @@ void loop()
     String currentStatus = pourSystem.getLastStatus();
     if (currentStatus != lastTbStatus && currentStatus.length() > 0)
     {
-      tb.sendTelemetryData(TB_STATUS_TELEMETRY, currentStatus);
-      Serial.println("📱 Status sent to ThingsBoard: " + currentStatus);
+      tb.sendAttributeData("status", currentStatus);
+      Serial.println("📱 Status attribute sent to ThingsBoard: " + currentStatus);
       
       // Reset cup size display when pour completes
       if (currentStatus == STATUS_COMPLETE) {
-        tb.sendTelemetryData(TB_CUP_SIZE_TELEMETRY, 0);
+        tb.sendAttributeData("cupSize", 0);
         Serial.println("📱 Cup size reset to 0 after pour completion");
       }
       
@@ -245,8 +245,8 @@ void loop()
     int currentReadyBusyStatus = statusManager.isReady() ? 1 : 0;
     if (currentReadyBusyStatus != lastReadyBusyStatus)
     {
-      tb.sendTelemetryData(TB_READY_BUSY_TELEMETRY, currentReadyBusyStatus);
-      Serial.println("📱 Ready/Busy status sent to ThingsBoard: " + String(currentReadyBusyStatus == 1 ? "READY" : "BUSY"));
+      tb.sendAttributeData("ready", currentReadyBusyStatus);
+      Serial.println("📱 Ready/Busy attribute sent to ThingsBoard: " + String(currentReadyBusyStatus == 1 ? "READY" : "BUSY"));
       lastReadyBusyStatus = currentReadyBusyStatus;
     }
   }
@@ -265,10 +265,10 @@ void processCupSizeChange(const JsonVariantConst &data, JsonDocument &response)
   Serial.println("ml");
   pourSystem.handleCupSizeChange(value);
   
-  // Send telemetry update to ThingsBoard
+  // Send attribute update to ThingsBoard
   if (thingsBoardConnected) {
-    tb.sendTelemetryData(TB_CUP_SIZE_TELEMETRY, value);
-    Serial.println("📱 Cup size telemetry sent to ThingsBoard: " + String(value) + "ml");
+    tb.sendAttributeData("cupSize", value);
+    Serial.println("📱 Cup size attribute sent to ThingsBoard: " + String(value) + "ml");
   }
   
   response.set(value);
@@ -279,10 +279,10 @@ void processMlPerPulseChange(const JsonVariantConst &data, JsonDocument &respons
   float value = data.as<float>();
   pourSystem.handleMlPerPulseChange(value);
   
-  // Send telemetry update to ThingsBoard
+  // Send attribute update to ThingsBoard
   if (thingsBoardConnected) {
-    tb.sendTelemetryData(TB_ML_PER_PULSE_TELEMETRY, value);
-    Serial.println("📱 ML per pulse telemetry sent to ThingsBoard: " + String(value));
+    tb.sendAttributeData("mlPerPulse", value);
+    Serial.println("📱 ML per pulse attribute sent to ThingsBoard: " + String(value));
   }
   
   response.set(value);
@@ -296,7 +296,7 @@ void processStopCommand(const JsonVariantConst &data, JsonDocument &response)
     pourSystem.emergencyStop();
     // Reset cup size display on dashboard
     if (thingsBoardConnected) {
-      tb.sendTelemetryData(TB_CUP_SIZE_TELEMETRY, 0);
+      tb.sendAttributeData("cupSize", 0);
       Serial.println("📱 Dashboard cup size reset to 0");
     }
   }

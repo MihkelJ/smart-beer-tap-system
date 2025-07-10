@@ -1,11 +1,11 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
-// ThingsBoard telemetry keys and RPC commands
-#define TB_CUP_SIZE_TELEMETRY "cupSize"
-#define TB_STATUS_TELEMETRY "status"
-#define TB_ML_PER_PULSE_TELEMETRY "mlPerPulse"
-#define TB_READY_BUSY_TELEMETRY "ready"
+// ThingsBoard attribute keys and RPC commands
+#define TB_CUP_SIZE_ATTRIBUTE "cupSize"
+#define TB_STATUS_ATTRIBUTE "status"
+#define TB_ML_PER_PULSE_ATTRIBUTE "mlPerPulse"
+#define TB_READY_BUSY_ATTRIBUTE "ready"
 #define TB_SET_CUP_SIZE_RPC "setCupSize"
 #define TB_SET_ML_PER_PULSE_RPC "setMlPerPulse"
 #define TB_STOP_POUR_RPC "stopPour"

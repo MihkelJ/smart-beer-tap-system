@@ -51,7 +51,7 @@ void PourSystem::updateStatus(const String &status)
   {
     lastStatus = status;
     Serial.println("Status: " + status);
-    // Note: ThingsBoard telemetry must be sent from main file due to module separation
+    // Note: ThingsBoard attributes must be sent from main file due to module separation
   }
 }
 
@@ -101,7 +101,7 @@ void PourSystem::stopPour()
   isReady = true;
   currentCupSize = 0;  // Reset cup size
   statusManager.setReady();
-  // ThingsBoard telemetry update will be called from main file
+  // ThingsBoard attribute update will be called from main file
 }
 
 void PourSystem::emergencyStop()
