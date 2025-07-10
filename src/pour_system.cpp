@@ -20,7 +20,6 @@ PourSystem::PourSystem()
   isReady = true;
   isPouring = false;
   currentCupSize = 0;
-  lastStatus = "";
   lastWatchdogTime = 0;
   lastStatsTime = 0;
 }
@@ -35,9 +34,6 @@ void PourSystem::init()
 
   lastWatchdogTime = millis();
   lastStatsTime = millis();
-
-  // Initialize status manager
-  statusManager.init();
 }
 
 void PourSystem::setRelay(bool state)
@@ -45,15 +41,6 @@ void PourSystem::setRelay(bool state)
   digitalWrite(RELAY_PIN, state);
 }
 
-void PourSystem::updateStatus(const String &status)
-{
-  if (status != lastStatus)
-  {
-    lastStatus = status;
-    Serial.println("Status: " + status);
-    // Note: ThingsBoard attributes must be sent from main file due to module separation
-  }
-}
 
 void PourSystem::resetCounters()
 {
@@ -73,12 +60,10 @@ void PourSystem::startPour()
   }
 
   isPouring = true;
-  statusManager.setBusy();
   setRelay(false);
-  ledController.setPattern(LED_POURING, true); // Set as background pattern
-  updateStatus(STATUS_POURING);
   pourStartTime = millis();
   totalPours++;
+  Serial.println("Pour started");
 }
 
 void PourSystem::stopPour()
@@ -93,14 +78,11 @@ void PourSystem::stopPour()
   }
 
   totalVolumePoured += totalVolume;
-  ledController.blinkCount(3, "Pour complete - " + String(totalVolume) + "ml poured");
-  ledController.setPattern(LED_READY, true); // Set ready as background pattern
-  updateStatus(STATUS_COMPLETE);
+  Serial.println("Pour complete - " + String(totalVolume) + "ml poured");
   resetCounters();
   isPouring = false;
   isReady = true;
   currentCupSize = 0; // Reset cup size
-  statusManager.setReady();
   // ThingsBoard attribute update will be called from main file
 }
 
@@ -109,8 +91,6 @@ void PourSystem::emergencyStop()
   if (isPouring)
   {
     setRelay(true); // Close valve immediately
-    ledController.blinkRapidly(1000, "Emergency stop activated");
-    updateStatus("❌ Pour stopped by user");
     Serial.println("🛑 EMERGENCY STOP - Pour halted by user");
 
     // Reset system state
@@ -118,15 +98,10 @@ void PourSystem::emergencyStop()
     isPouring = false;
     isReady = true;
     currentCupSize = 0; // Reset cup size
-    statusManager.setReady();
-
-    // Set ready pattern after brief error indication
-    ledController.setPattern(LED_READY, true);
   }
   else
   {
     Serial.println("ℹ️ Stop button pressed, but no pour in progress");
-    updateStatus("ℹ️ No pour to stop");
   }
 }
 
@@ -145,26 +120,21 @@ void PourSystem::handleCupSizeChange(int value)
     isReady = true;
     resetCounters();
     setRelay(true);
-    ledController.setLed(false);
     isPouring = false;
-    statusManager.setReady();
   }
   else
   {
     // Input validation
     if (value < MIN_CUP_SIZE || value > MAX_CUP_SIZE)
     {
-      updateStatus("Error: Invalid cup size " + String(value) + "ml");
-      ledController.blinkRapidly(1000, "Invalid cup size");
-      statusManager.setBusy();
+      Serial.println("❌ Invalid cup size: " + String(value) + "ml");
       return;
     }
     currentCupSize = value;
     isReady = false;
     isPouring = false; // Reset pouring state
     resetCounters();   // Reset counters for new pour
-    ledController.blinkCount(2, "Cup size changed to " + String(currentCupSize) + "ml");
-    statusManager.setBusy();
+    Serial.println("✅ Cup size set to " + String(currentCupSize) + "ml");
   }
 }
 
@@ -173,12 +143,11 @@ void PourSystem::handleMlPerPulseChange(float value)
   // Input validation
   if (value < MIN_ML_PER_PULSE || value > MAX_ML_PER_PULSE)
   {
-    updateStatus("Error: Invalid ml/pulse " + String(value));
-    ledController.blinkRapidly(1000, "Invalid ml per pulse");
+    Serial.println("❌ Invalid ml per pulse: " + String(value));
     return;
   }
   mlPerPulse = value;
-  updateStatus("ML per pulse updated: " + String(mlPerPulse));
+  Serial.println("✅ ML per pulse updated: " + String(mlPerPulse));
 }
 
 void PourSystem::checkWatchdog()
@@ -204,7 +173,6 @@ bool PourSystem::performSafetyChecks(bool wifiConnected, bool thingsBoardConnect
   if (currentPulseCount > MAX_PULSE_COUNT)
   {
     Serial.println("Error: Pulse count overflow detected");
-    updateStatus("Error: Sensor malfunction");
     stopPour();
     return false;
   }
@@ -215,7 +183,6 @@ bool PourSystem::performSafetyChecks(bool wifiConnected, bool thingsBoardConnect
   if (totalVolume > MAX_VOLUME_SANITY)
   {
     Serial.println("Error: Volume calculation overflow");
-    updateStatus("Error: Volume overflow");
     stopPour();
     return false;
   }
@@ -228,8 +195,6 @@ bool PourSystem::performSafetyChecks(bool wifiConnected, bool thingsBoardConnect
     {
       Serial.println("Pour timeout reached!");
       stopPour();
-      updateStatus("Error: Pour timeout");
-      ledController.blinkRapidly(2000, "Pour timeout error");
       return false;
     }
 
@@ -238,8 +203,6 @@ bool PourSystem::performSafetyChecks(bool wifiConnected, bool thingsBoardConnect
     {
       Serial.println("Maximum pour volume reached!");
       stopPour();
-      updateStatus("Error: Max volume reached");
-      ledController.blinkRapidly(2000, "Max volume error");
       return false;
     }
   }
@@ -267,16 +230,13 @@ void PourSystem::update()
     if (currentCupSize <= 0)
     {
       Serial.println("Error: Invalid cup size for pour start");
-      updateStatus("Error: Invalid cup size");
       isReady = true;           // Reset to ready state
-      statusManager.setReady(); // Sync status manager
       return;
     }
 
     if (!wifiConnected || !thingsBoardConnected)
     {
       Serial.println("Warning: Starting pour without network connection");
-      updateStatus("Warning: No network connection");
     }
 
     startPour();

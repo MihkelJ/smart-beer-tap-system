@@ -12,8 +12,6 @@ ThingsBoardNetworkManager::ThingsBoardNetworkManager()
 
 void ThingsBoardNetworkManager::init()
 {
-  // Show connecting pattern
-  ledController.setPattern(LED_ERROR_WARNING); // Use warning pattern for connecting
   Serial.println("Status: Connecting to WiFi");
   // ThingsBoard.connect will be called from main file
 }
@@ -25,18 +23,13 @@ void ThingsBoardNetworkManager::handleWifiStatusChange()
   {
     if (wifiConnected)
     {
-      ledController.blinkCount(2, "WiFi connection established");
+      Serial.println("WiFi connection established");
     }
     else
     {
-      ledController.blinkRapidly(1000, "WiFi connection failed");
+      Serial.println("WiFi connection failed - attempting reconnect");
       WiFi.reconnect();
     }
     lastWifiConnected = wifiConnected;
   }
-}
-
-void ThingsBoardNetworkManager::handleThingsBoardStatusChange(int currentCupSize, float mlPerPulse)
-{
-  // ThingsBoard status handling removed - no more spam messages
 }

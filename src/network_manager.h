@@ -4,7 +4,6 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include "constants.h"
-#include "led_controller.h"
 
 // Forward declarations for ThingsBoard - actual includes will be in main file
 
@@ -18,7 +17,6 @@ public:
   void init();
   // Connection recovery
   void handleWifiStatusChange();
-  void handleThingsBoardStatusChange(int currentCupSize, float mlPerPulse);
 };
 
 // Global instance

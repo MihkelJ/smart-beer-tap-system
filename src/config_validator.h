@@ -2,7 +2,6 @@
 #define CONFIG_VALIDATOR_H
 
 #include <Arduino.h>
-#include "led_controller.h"
 
 class ConfigValidator
 {

@@ -7,7 +7,6 @@
 #define TB_STOP_POUR_RPC "stopPour"
 
 // Hardware pins
-#define LED_PIN 2
 #define RELAY_PIN 13
 #define FLOW_SENSOR_PIN 27
 
@@ -23,10 +22,6 @@
 #define MAX_ML_PER_PULSE 10.0  // Maximum ml per pulse
 #define WATCHDOG_TIMEOUT 30000 // Watchdog timeout in milliseconds (30 seconds)
 
-// Status messages
-#define STATUS_READY "System Ready"
-#define STATUS_POURING "Pouring..."
-#define STATUS_COMPLETE "Pour Complete!"
 
 // Safety limits
 #define MAX_PULSE_COUNT 1000000 // Sanity check for pulse count

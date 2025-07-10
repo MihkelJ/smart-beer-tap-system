@@ -20,11 +20,9 @@
 #include <Arduino_MQTT_Client.h>
 #include <Server_Side_RPC.h>
 #include <ThingsBoard.h>
-#include "src/led_controller.h"
 #include "src/pour_system.h"
 #include "src/network_manager.h"
 #include "src/config_validator.h"
-#include "src/status_manager.h"
 
 // Initialize ThingsBoard client
 WiFiClient espClient;
@@ -64,19 +62,12 @@ void setup()
   Serial.println("🍺 Smart Beer Tap System Starting...");
   Serial.println("=====================================");
 
-  // Initialize LED controller first for visual feedback
-  ledController.init();
-  ledController.blinkCount(1, "System starting up");
-
   // Validate configuration before proceeding
   if (!configValidator.validateConfiguration())
   {
     Serial.println("");
     Serial.println("❌ SETUP FAILED - Configuration Invalid!");
     configValidator.displayConfigErrors();
-
-    // Set error LED pattern and halt
-    ledController.setPattern(LED_CONFIG_ERROR);
 
     // Don't proceed with initialization
     return;
@@ -109,7 +100,6 @@ void setup()
   {
     Serial.println();
     Serial.println("❌ Failed to connect to WiFi!");
-    ledController.setPattern(LED_ERROR_NETWORK);
     return;
   }
 
@@ -121,28 +111,19 @@ void setup()
   // ThingsBoard connection will be handled in loop()
   Serial.println("📡 WiFi ready, ThingsBoard connection will be attempted in main loop...");
 
-  // Set system ready after successful initialization
-  statusManager.setReady();
-
   // System ready indication
   Serial.println("");
   Serial.println("✅ SETUP COMPLETE!");
   Serial.println("🍺 Smart Beer Tap ready for operation");
   Serial.println("📱 Use your ThingsBoard dashboard to control the tap");
   Serial.println("");
-
-  ledController.blinkCount(4, "System ready for operation");
-
-  // Set ready as background pattern
-  ledController.setPattern(LED_READY, true);
 }
 
 void loop()
 {
-  // If configuration is invalid, just update LED error pattern and wait
+  // If configuration is invalid, just wait
   if (!configValidator.isConfigValid())
   {
-    ledController.update();
     delay(100);
     return;
   }
@@ -191,7 +172,6 @@ void loop()
 
             // Send initial attributes
             tb.sendAttributeData("cupSize", 0);
-            tb.sendAttributeData("status", STATUS_READY);
             tb.sendAttributeData("ready", 1);
             tb.sendAttributeData("mlPerPulse", pourSystem.getMlPerPulse());
           }
@@ -227,45 +207,23 @@ void loop()
   // Check system watchdog
   pourSystem.checkWatchdog();
 
-  // Update LED patterns non-blocking
-  ledController.update();
-
   // Check network status and handle reconnections
   networkManager.handleWifiStatusChange();
-  networkManager.handleThingsBoardStatusChange(pourSystem.getCurrentCupSize(), pourSystem.getMlPerPulse());
 
   // Update pour system (includes safety checks and pour logic)
   pourSystem.update();
 
-  // Send status updates to ThingsBoard if connected and status changed
+  // Send cup size reset to ThingsBoard when pour completes
   if (thingsBoardConnected)
   {
-    static String lastTbStatus = "";
-    String currentStatus = pourSystem.getLastStatus();
-    if (currentStatus != lastTbStatus && currentStatus.length() > 0)
+    static bool lastPourState = false;
+    bool currentPourState = pourSystem.getIsPouring();
+    if (lastPourState && !currentPourState)
     {
-      tb.sendAttributeData("status", currentStatus);
-      Serial.println("📱 Status attribute sent to ThingsBoard: " + currentStatus);
-
-      // Reset cup size display when pour completes
-      if (currentStatus == STATUS_COMPLETE)
-      {
-        tb.sendAttributeData("cupSize", 0);
-        Serial.println("📱 Cup size reset to 0 after pour completion");
-      }
-
-      lastTbStatus = currentStatus;
+      tb.sendAttributeData("cupSize", 0);
+      Serial.println("📱 Cup size reset to 0 after pour completion");
     }
-
-    // Send ready/busy status updates to ThingsBoard if changed
-    static int lastReadyBusyStatus = -1;
-    int currentReadyBusyStatus = statusManager.isReady() ? 0 : 1;
-    if (currentReadyBusyStatus != lastReadyBusyStatus)
-    {
-      tb.sendAttributeData("status", currentReadyBusyStatus);
-      Serial.println("📱 Status attribute sent to ThingsBoard: " + String(currentReadyBusyStatus == 0 ? "READY" : "BUSY"));
-      lastReadyBusyStatus = currentReadyBusyStatus;
-    }
+    lastPourState = currentPourState;
   }
 
   // Small delay to prevent overwhelming the system

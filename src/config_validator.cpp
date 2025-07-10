@@ -146,7 +146,6 @@ void ConfigValidator::displayConfigErrors()
     Serial.println("📖 See SETUP.md for detailed instructions");
     Serial.println("");
 
-    // Flash error pattern continuously
-    ledController.setPattern(LED_ERROR_CRITICAL);
+    // Configuration validation failed
   }
 }

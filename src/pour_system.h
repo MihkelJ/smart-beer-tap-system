@@ -4,8 +4,6 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include "constants.h"
-#include "led_controller.h"
-#include "status_manager.h"
 
 class PourSystem
 {
@@ -25,7 +23,6 @@ private:
   bool isReady;
   bool isPouring;
   int currentCupSize;
-  String lastStatus;
 
   // Timing variables
   unsigned long lastWatchdogTime;
@@ -47,8 +44,6 @@ public:
   // Relay control
   void setRelay(bool state);
 
-  // Status management
-  void updateStatus(const String &status);
 
   // ThingsBoard RPC handlers
   void handleCupSizeChange(int value);
@@ -63,7 +58,6 @@ public:
   float getTotalVolume() const { return totalVolume; }
   int getCurrentCupSize() const { return currentCupSize; }
   float getMlPerPulse() const { return mlPerPulse; }
-  String getLastStatus() const { return lastStatus; }
 
   // Safety checks
   bool performSafetyChecks(bool wifiConnected, bool thingsBoardConnected);
