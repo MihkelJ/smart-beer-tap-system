@@ -23,6 +23,7 @@
 #include "src/pour_system.h"
 #include "src/network_manager.h"
 #include "src/config_validator.h"
+#include "src/led_controller.h"
 
 // Initialize ThingsBoard client
 WiFiClient espClient;
@@ -33,6 +34,9 @@ Server_Side_RPC<MAX_RPC_SUBSCRIPTIONS, MAX_RPC_RESPONSE> rpc;
 IAPI_Implementation *apis[1U] = {
     &rpc};
 ThingsBoard tb(mqttClient, 256U, 256U, 1024U, apis + 0U, apis + 1U);
+
+// LED controller instance
+LEDController ledController;
 
 // Connection state tracking
 bool thingsBoardConnected = false;
@@ -61,6 +65,10 @@ void setup()
   Serial.println();
   Serial.println("🍺 Smart Beer Tap System Starting...");
   Serial.println("=====================================");
+  
+  // Initialize LED controller first for visual feedback
+  ledController.begin();
+  ledController.setState(STATE_BOOTING);
 
   // Validate configuration before proceeding
   if (!configValidator.validateConfiguration())
@@ -68,6 +76,9 @@ void setup()
     Serial.println("");
     Serial.println("❌ SETUP FAILED - Configuration Invalid!");
     configValidator.displayConfigErrors();
+    
+    // Indicate configuration error with LED
+    ledController.setState(STATE_CONFIG_ERROR);
 
     // Don't proceed with initialization
     return;
@@ -85,6 +96,7 @@ void setup()
 
   // Connect to WiFi first
   Serial.println("📡 Connecting to WiFi...");
+  ledController.setState(STATE_WIFI_CONNECTING);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
   // Wait for WiFi connection with timeout
@@ -94,12 +106,14 @@ void setup()
     delay(1000);
     Serial.print(".");
     wifiTimeout--;
+    ledController.update(); // Update LED patterns during connection
   }
 
   if (WiFi.status() != WL_CONNECTED)
   {
     Serial.println();
     Serial.println("❌ Failed to connect to WiFi!");
+    ledController.setState(STATE_WIFI_FAILED);
     return;
   }
 
@@ -107,6 +121,7 @@ void setup()
   Serial.println("✅ WiFi connected!");
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
+  ledController.setState(STATE_WIFI_CONNECTED);
 
   // ThingsBoard connection will be handled in loop()
   Serial.println("📡 WiFi ready, ThingsBoard connection will be attempted in main loop...");
@@ -117,13 +132,20 @@ void setup()
   Serial.println("🍺 Smart Beer Tap ready for operation");
   Serial.println("📱 Use your ThingsBoard dashboard to control the tap");
   Serial.println("");
+  
+  // Set system ready LED status
+  ledController.setState(STATE_SYSTEM_READY);
 }
 
 void loop()
 {
+  // Update LED controller
+  ledController.update();
+  
   // If configuration is invalid, just wait
   if (!configValidator.isConfigValid())
   {
+    ledController.setState(STATE_CONFIG_ERROR);
     delay(100);
     return;
   }
@@ -141,6 +163,9 @@ void loop()
         Serial.println(THINGSBOARD_SERVER);
         Serial.print("Token: ");
         Serial.println(String(THINGSBOARD_ACCESS_TOKEN).substring(0, 8) + "...");
+        
+        // Set ThingsBoard connecting LED status
+        ledController.setState(STATE_TB_CONNECTING);
 
         // Set connection timeout
         unsigned long connectionStart = millis();
@@ -163,6 +188,7 @@ void loop()
         {
           Serial.println("✅ ThingsBoard connected!");
           thingsBoardConnected = true;
+          ledController.setState(STATE_TB_CONNECTED);
 
           // Subscribe to RPC commands
           if (rpc.RPC_Subscribe(callbacks + 0U, callbacks + COUNT_OF(callbacks)))
@@ -186,6 +212,7 @@ void loop()
           Serial.println(WiFi.status());
           Serial.print("IP Address: ");
           Serial.println(WiFi.localIP());
+          ledController.setState(STATE_TB_FAILED);
         }
         lastConnectionAttempt = millis();
       }
@@ -201,6 +228,7 @@ void loop()
     // WiFi disconnected, reset ThingsBoard connection
     thingsBoardConnected = false;
     rpcSubscribed = false;
+    ledController.setState(STATE_WIFI_FAILED);
   }
 
   // Check system watchdog
@@ -212,18 +240,29 @@ void loop()
   // Update pour system (includes safety checks and pour logic)
   pourSystem.update();
 
+  // Handle pour state changes and LED updates
+  static bool lastPourState = false;
+  bool currentPourState = pourSystem.getIsPouring();
+  
+  // Update pour LED status
+  if (currentPourState) {
+    ledController.setState(STATE_POURING);
+  } else if (lastPourState && !currentPourState) {
+    // Pour just completed - temporarily show completion
+    ledController.setTemporaryState(STATE_POUR_COMPLETE, 3000);
+  }
+  
   // Send cup size reset to ThingsBoard when pour completes
   if (thingsBoardConnected)
   {
-    static bool lastPourState = false;
-    bool currentPourState = pourSystem.getIsPouring();
     if (lastPourState && !currentPourState)
     {
       tb.sendAttributeData(TB_CUP_SIZE_ATTR, 0);
       Serial.println("📱 Cup size reset to 0 after pour completion");
     }
-    lastPourState = currentPourState;
   }
+  
+  lastPourState = currentPourState;
 
   // Small delay to prevent overwhelming the system
   delay(100);
@@ -270,6 +309,9 @@ void processStopCommand(const JsonVariantConst &data, JsonDocument &response)
   if (value == 1) // Button pressed (only act on press, not release)
   {
     pourSystem.emergencyStop();
+    // Flash error LED briefly to indicate emergency stop
+    ledController.setTemporaryState(STATE_ERROR, 1000);
+    
     // Reset cup size display on dashboard
     if (thingsBoardConnected)
     {

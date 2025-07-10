@@ -14,6 +14,9 @@
 #define RELAY_PIN 13
 #define FLOW_SENSOR_PIN 27
 
+// LED status indicator pin
+#define LED_SYSTEM_PIN 2      // Single system status LED
+
 // Flow sensor constants
 #define DEFAULT_ML_PER_PULSE 2.222 // 450 pulses/liter ≈ 2.222ml/pulse
 
