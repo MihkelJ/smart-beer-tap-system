@@ -9,6 +9,7 @@
 #define TB_SET_CUP_SIZE_RPC "setCupSize"
 #define TB_SET_ML_PER_PULSE_RPC "setMlPerPulse"
 #define TB_STOP_POUR_RPC "stopPour"
+#define TB_RESET_WIFI_RPC "resetWiFi"
 
 // Hardware pins
 #define RELAY_PIN 13
@@ -16,6 +17,12 @@
 
 // LED status indicator pin
 #define LED_SYSTEM_PIN 2      // Single system status LED
+
+// WiFi Provisioning constants
+#define WIFI_PORTAL_SSID "BeerTap-Setup"
+#define WIFI_PORTAL_PASSWORD ""               // Open AP for easy access
+#define WIFI_PORTAL_TIMEOUT 180              // 3 minutes timeout for config portal
+#define WIFI_CONNECTION_TIMEOUT 30           // 30 seconds for WiFi connection attempts
 
 // Flow sensor constants
 #define DEFAULT_ML_PER_PULSE 2.222 // 450 pulses/liter ≈ 2.222ml/pulse

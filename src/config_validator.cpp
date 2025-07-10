@@ -77,36 +77,9 @@ bool ConfigValidator::checkThingsBoardCredentials()
 
 bool ConfigValidator::checkWiFiCredentials()
 {
-  String ssid = String(WIFI_SSID);
-  String password = String(WIFI_PASSWORD);
-
-  // Check for placeholder values
-  if (containsPlaceholder(ssid))
-  {
-    setError("❌ WIFI_SSID contains placeholder text");
-    return false;
-  }
-
-  if (containsPlaceholder(password))
-  {
-    setError("❌ WIFI_PASSWORD contains placeholder text");
-    return false;
-  }
-
-  // Check minimum lengths
-  if (ssid.length() < 1)
-  {
-    setError("❌ WIFI_SSID is empty");
-    return false;
-  }
-
-  if (password.length() < 8)
-  {
-    setError("❌ WIFI_PASSWORD too short (minimum 8 characters)");
-    return false;
-  }
-
-  Serial.println("✅ WiFi credentials validated");
+  // WiFi credentials are now managed by WiFiManager captive portal
+  // No need to validate hardcoded credentials as they are configured dynamically
+  Serial.println("✅ WiFi credentials managed by WiFiManager - no validation needed");
   return true;
 }
 

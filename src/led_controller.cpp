@@ -164,28 +164,32 @@ LEDPattern LEDController::getPatternForState(SystemState state) {
     switch (state) {
         case STATE_BOOTING:
             return LED_BLINK_FAST;
+        case STATE_WIFI_PORTAL_ACTIVE:
+            return LED_DOUBLE_BLINK;       // Portal waiting for connection
+        case STATE_WIFI_PORTAL_CONFIG:
+            return LED_TRIPLE_BLINK;       // User actively configuring
         case STATE_WIFI_CONNECTING:
-            return LED_DOUBLE_BLINK;
+            return LED_BLINK_FAST;         // Fast blink during connection
         case STATE_WIFI_CONNECTED:
-            return LED_HEARTBEAT;
+            return LED_HEARTBEAT;          // Heartbeat when connected
         case STATE_WIFI_FAILED:
-            return LED_DOUBLE_BLINK;
+            return LED_BLINK_SLOW;         // Slow blink for failed connection
         case STATE_TB_CONNECTING:
-            return LED_TRIPLE_BLINK;
+            return LED_TRIPLE_BLINK;       // ThingsBoard connecting
         case STATE_TB_CONNECTED:
-            return LED_SOLID;
+            return LED_SOLID;              // Solid when fully connected
         case STATE_TB_FAILED:
-            return LED_QUADRUPLE_BLINK;
+            return LED_QUADRUPLE_BLINK;    // 4 blinks for TB failure
         case STATE_SYSTEM_READY:
-            return LED_SOLID;
+            return LED_SOLID;              // Solid when ready
         case STATE_POURING:
-            return LED_PULSE_SLOW;
+            return LED_PULSE_SLOW;         // Slow pulse during pour
         case STATE_POUR_COMPLETE:
-            return LED_PULSE_FAST;
+            return LED_PULSE_FAST;         // Fast pulse when complete
         case STATE_ERROR:
-            return LED_BLINK_SLOW;
+            return LED_BLINK_SLOW;         // Slow blink for errors
         case STATE_CONFIG_ERROR:
-            return LED_TRIPLE_BLINK;
+            return LED_TRIPLE_BLINK;       // Triple blink for config errors
         default:
             return LED_OFF;
     }

@@ -20,18 +20,20 @@ enum LEDPattern {
 
 // System states for LED indication
 enum SystemState {
-    STATE_BOOTING,         // System starting up
-    STATE_WIFI_CONNECTING, // Connecting to WiFi
-    STATE_WIFI_CONNECTED,  // WiFi connected
-    STATE_WIFI_FAILED,     // WiFi connection failed
-    STATE_TB_CONNECTING,   // Connecting to ThingsBoard
-    STATE_TB_CONNECTED,    // ThingsBoard connected
-    STATE_TB_FAILED,       // ThingsBoard connection failed
-    STATE_SYSTEM_READY,    // System ready for operation
-    STATE_POURING,         // Pour in progress
-    STATE_POUR_COMPLETE,   // Pour completed
-    STATE_ERROR,           // System error
-    STATE_CONFIG_ERROR     // Configuration error
+    STATE_BOOTING,             // System starting up
+    STATE_WIFI_PORTAL_ACTIVE,  // WiFi provisioning portal active
+    STATE_WIFI_PORTAL_CONFIG,  // User configuring WiFi in portal
+    STATE_WIFI_CONNECTING,     // Connecting to WiFi
+    STATE_WIFI_CONNECTED,      // WiFi connected
+    STATE_WIFI_FAILED,         // WiFi connection failed
+    STATE_TB_CONNECTING,       // Connecting to ThingsBoard
+    STATE_TB_CONNECTED,        // ThingsBoard connected
+    STATE_TB_FAILED,           // ThingsBoard connection failed
+    STATE_SYSTEM_READY,        // System ready for operation
+    STATE_POURING,             // Pour in progress
+    STATE_POUR_COMPLETE,       // Pour completed
+    STATE_ERROR,               // System error
+    STATE_CONFIG_ERROR         // Configuration error
 };
 
 class LEDController {
