@@ -8,7 +8,6 @@ ThingsBoardNetworkManager networkManager;
 ThingsBoardNetworkManager::ThingsBoardNetworkManager()
 {
   lastWifiConnected = false;
-  lastThingsBoardConnected = false;
 }
 
 void ThingsBoardNetworkManager::init()
@@ -19,26 +18,9 @@ void ThingsBoardNetworkManager::init()
   // ThingsBoard.connect will be called from main file
 }
 
-void ThingsBoardNetworkManager::initializeThingsBoardValues(float mlPerPulse)
-{
-  // ThingsBoard initialization will be called from main file
-  Serial.println("Initializing ThingsBoard values");
-}
-
-bool ThingsBoardNetworkManager::isWifiConnected() const
-{
-  return (WiFi.status() == WL_CONNECTED);
-}
-
-bool ThingsBoardNetworkManager::isThingsBoardConnected() const
-{
-  // ThingsBoard.connected() will be checked from main file
-  return true; // Placeholder - will be managed by main file
-}
-
 void ThingsBoardNetworkManager::handleWifiStatusChange()
 {
-  bool wifiConnected = isWifiConnected();
+  bool wifiConnected = (WiFi.status() == WL_CONNECTED);
   if (wifiConnected != lastWifiConnected)
   {
     if (wifiConnected)
@@ -57,9 +39,4 @@ void ThingsBoardNetworkManager::handleWifiStatusChange()
 void ThingsBoardNetworkManager::handleThingsBoardStatusChange(int currentCupSize, float mlPerPulse)
 {
   // ThingsBoard status handling removed - no more spam messages
-}
-
-void ThingsBoardNetworkManager::update()
-{
-  // ThingsBoard.loop() will be called from main file
 }

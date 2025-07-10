@@ -1,11 +1,7 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
-// ThingsBoard attribute keys and RPC commands
-#define TB_CUP_SIZE_ATTRIBUTE "cupSize"
-#define TB_STATUS_ATTRIBUTE "status"
-#define TB_ML_PER_PULSE_ATTRIBUTE "mlPerPulse"
-#define TB_READY_BUSY_ATTRIBUTE "ready"
+// ThingsBoard RPC commands
 #define TB_SET_CUP_SIZE_RPC "setCupSize"
 #define TB_SET_ML_PER_PULSE_RPC "setMlPerPulse"
 #define TB_STOP_POUR_RPC "stopPour"
@@ -35,6 +31,5 @@
 // Safety limits
 #define MAX_PULSE_COUNT 1000000 // Sanity check for pulse count
 #define MAX_VOLUME_SANITY 10000 // 10L sanity check for volume calculations
-#define SENSOR_TIMEOUT 10000    // 10 seconds without pulses indicates sensor issue
 
 #endif // CONSTANTS_H

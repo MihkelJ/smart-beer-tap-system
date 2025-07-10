@@ -247,22 +247,6 @@ bool PourSystem::performSafetyChecks(bool wifiConnected, bool thingsBoardConnect
   return true;
 }
 
-void PourSystem::checkSensorHealth()
-{
-  // Sensor health check disabled - uncomment if you have flow sensor connected
-  /*
-  // Check for sensor disconnection (no pulses for extended time)
-  if (isPouring && pulseCount > 0)
-  {
-    lastPulseTime = millis();
-  }
-  else if (isPouring && (millis() - lastPulseTime > SENSOR_TIMEOUT))
-  {
-    Serial.println("Warning: No flow detected - sensor may be disconnected");
-    updateStatus("Warning: No flow detected");
-  }
-  */
-}
 
 void PourSystem::update()
 {
@@ -275,7 +259,6 @@ void PourSystem::update()
     return; // Safety check failed, exit early
   }
 
-  // Sensor health checks removed
 
   // Enhanced pour start logic with error handling
   if (!isReady && !isPouring && totalVolume == 0)

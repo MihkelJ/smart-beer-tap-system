@@ -67,7 +67,6 @@ public:
 
   // Safety checks
   bool performSafetyChecks(bool wifiConnected, bool thingsBoardConnected);
-  void checkSensorHealth();
 };
 
 // Global instance

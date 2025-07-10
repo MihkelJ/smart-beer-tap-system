@@ -304,22 +304,6 @@ void LedController::update()
     }
     break;
 
-  case LED_SETUP_MODE:
-  {
-    // Breathing pattern using sine wave
-    unsigned long breathCycle = (currentTime / 10) % 628;     // 0-628 (~2*PI*100)
-    float intensity = (sin(breathCycle / 100.0) + 1.0) / 2.0; // 0.0 to 1.0
-
-    // Simple PWM-like effect by varying blink rate
-    int blinkInterval = 20 + (int)(80 * intensity); // 20ms to 100ms
-    if (currentTime - state.lastUpdate > blinkInterval)
-    {
-      setLed(!state.ledPhysicalState);
-      state.lastUpdate = currentTime;
-    }
-  }
-  break;
-
   default:
     setLed(false);
     break;

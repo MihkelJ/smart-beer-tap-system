@@ -18,7 +18,6 @@ enum LedPattern
   LED_WIFI_CONNECT,        // 2 quick blinks
   LED_THINGSBOARD_CONNECT, // 2 quick blinks with pause
   LED_CONFIG_ERROR,        // Ultra fast red blinking - config validation failed
-  LED_SETUP_MODE,          // Breathing pattern for setup guidance
   LED_ERROR_CRITICAL,      // Very fast continuous blink
   LED_ERROR_WARNING,       // Medium speed blink
   LED_ERROR_INPUT,         // Short-long-short pattern

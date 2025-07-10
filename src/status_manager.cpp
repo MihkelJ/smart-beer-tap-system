@@ -64,7 +64,6 @@ void StatusManager::setStatus(bool ready)
 
 void StatusManager::syncToThingsBoard()
 {
-  int statusValue = isReady() ? 1 : 0;
   // Note: ThingsBoard attributes must be sent from main file due to module separation
   // This will be handled by the main loop checking for status changes
 }
