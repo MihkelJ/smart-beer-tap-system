@@ -172,7 +172,6 @@ void loop()
 
             // Send initial attributes
             tb.sendAttributeData(TB_CUP_SIZE_ATTR, 0);
-            tb.sendAttributeData(TB_READY_ATTR, 1);
             tb.sendAttributeData(TB_ML_PER_PULSE_ATTR, pourSystem.getMlPerPulse());
           }
           else
@@ -225,7 +224,7 @@ void loop()
     }
     lastPourState = currentPourState;
   }
-  
+
   // Small delay to prevent overwhelming the system
   delay(100);
 }
