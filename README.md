@@ -3,9 +3,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Platform: ESP32](https://img.shields.io/badge/Platform-ESP32-blue.svg)](https://www.espressif.com/en/products/socs/esp32)
 [![Framework: Arduino](https://img.shields.io/badge/Framework-Arduino-00979D.svg)](https://www.arduino.cc/)
-[![IoT: Blynk](https://img.shields.io/badge/IoT-Blynk-00A0E0.svg)](https://blynk.io/)
+[![IoT: ThingsBoard](https://img.shields.io/badge/IoT-ThingsBoard-FF6A00.svg)](https://thingsboard.io/)
 
-A complete automated beer dispensing system that combines ESP32-based hardware control with blockchain payment integration. The system consists of two main components:
+A complete automated beer dispensing system that combines ESP32-based hardware control with blockchain payment integration. The system consists of two main parts:
 
 1. **Hardware Control**: ESP32-based beer tap controller with precise volume control and safety features
 2. **Payment Integration**: Webhook service that processes blockchain payments and triggers the beer tap
@@ -15,11 +15,11 @@ A complete automated beer dispensing system that combines ESP32-based hardware c
 **New to the project? Start here:**
 
 1. **📖 [Read the Setup Guide](SETUP.md)** - Complete step-by-step instructions
-2. **⚙️ Configure your credentials** - Copy and edit `examples/config_template.h`
-3. **📱 Create Blynk app** - Follow the guide for easy setup
-4. **🔧 Upload code** - The system will validate your config automatically
+2. **⚙️ Configure your credentials—**Copy and edit `examples/config_template.h`
+3. **📱 Create ThingsBoard device—**Follow the guide for easy setup
+4. **🔧 Upload code—**The system will validate your config automatically
 
-**Setup validation built-in!** The system checks your configuration and provides clear error messages with LED feedback.
+**Setup validation built-in!** The system checks your configuration and provides clear error messages through serial output.
 
 ---
 
@@ -31,13 +31,11 @@ A complete automated beer dispensing system that combines ESP32-based hardware c
 - [Hardware Requirements](#-hardware-requirements)
 - [Software Requirements](#-software-requirements)
 - [Setup Process](#-setup-process)
-- [Status Indicators](#-status-indicators)
 - [Troubleshooting](#-troubleshooting)
 - [Safety Features](#-safety-features)
 - [Code Architecture](#-code-architecture)
 - [Payment Integration](#-payment-integration)
 - [Contributing](#-contributing)
-- [License](#-license)
 
 ## 🔄 System Overview
 
@@ -48,7 +46,7 @@ This project is a complete solution for automated beer dispensing with blockchai
 - ESP32-based controller for precise beer dispensing
 - Flow sensor for volume measurement
 - Relay control for tap operation
-- LED indicators for system status
+- Simple, reliable operation without visual indicators
 
 ### Payment Component
 
@@ -66,28 +64,26 @@ This project is a complete solution for automated beer dispensing with blockchai
   - Maximum volume limit (2 liters)
   - Automatic shutoff when target volume is reached
 - **🎯 Standard Pouring Mode**: Preset cup sizes from 50ml to 2000ml for precise dispensing
-- **📱 Status Monitoring**:
-  - Real-time pour status updates
-  - LED indicators for system state
-  - WiFi and Blynk connection status monitoring
-- **📲 Remote Control**: Full control through Blynk mobile app
+- **📲 Remote Control**: Full control through ThingsBoard IoT platform
 - **⚙️ Calibration**: Adjustable flow sensor calibration (ml per pulse)
+- **🔄 Automatic Reconnection**: Wi-Fi and ThingsBoard connection monitoring
 
 ## 🔧 Hardware Requirements
 
 - ESP32 microcontroller
-- Flow sensor
-- Relay module
-- WiFi connectivity
-- Power supply (12V and 5V)
+- Flow sensor compatible with pulse counting
+- Relay module (for solenoid valve control)
+- Wi-Fi connectivity
+- Power supply (5 V for ESP32, the appropriate voltage for relay/valve)
 
 ## 💻 Software Requirements
 
-- Arduino IDE
-- Blynk IoT platform
+- Arduino IDE or PlatformIO
+- ThingsBoard IoT platform account
 - Required libraries:
-  - WiFi.h
-  - BlynkSimpleEsp32.h
+  - Wi-Fi.h (built-in)
+  - Arduino_MQTT_Client
+  - ThingsBoard
 
 ## ⚙️ Setup Process
 
@@ -114,21 +110,13 @@ nano src/config.h
 
 The system includes **automatic configuration validation**:
 
-- ❌ **Ultra-fast red blinking** = Configuration error detected
-- ✅ **4 quick blinks** = Setup successful, system ready
+- ❌ **Configuration error detected** = Check serial monitor for detailed error messages
+- ✅ **Setup successful** = System ready for operation
 - 📊 **Serial Monitor** = Detailed error messages and instructions
 
-**No more guessing!** The system tells you exactly what's wrong and how to fix it.
+**No more guessing!** The system tells you exactly what's wrong and how to fix it through the serial monitor.
 
 ## 🚨 Troubleshooting
-
-### LED Error Patterns
-
-| LED Pattern | Problem | Solution |
-|-------------|---------|----------|
-| ⚡ **Ultra-fast blinking** | Config file error | Check `src/config.h` - follow [SETUP.md](SETUP.md) |
-| 🔄 **Medium continuous blink** | WiFi/Blynk connecting | Wait 30s, check credentials |
-| 🚫 **No LED activity** | Power/hardware issue | Check wiring, power supply |
 
 ### Common Issues
 
@@ -137,14 +125,14 @@ The system includes **automatic configuration validation**:
 - Edit with real credentials (no placeholder text)
 - Make sure all fields are filled
 
-**WiFi Won't Connect:**
-- Use 2.4GHz network only (ESP32 limitation)
+**Wi-Fi Won't Connect:**
+- Use 2.4 GHz network only (ESP32 limitation)
 - Check SSID/password spelling
-- Move ESP32 closer to router
+- Move ESP32 closer to the router
 
-**Blynk Won't Connect:**
-- Verify auth token is correct
-- Check template ID matches web console
+**ThingsBoard Won't Connect:**
+- Verify the device access token is correct
+- Check device is created in ThingsBoard
 - Ensure internet connection works
 
 🔧 **Need more help?** See the detailed [SETUP.md](SETUP.md) guide or create an issue with your Serial Monitor output.
@@ -155,143 +143,87 @@ The system includes several safety mechanisms:
 
 - Automatic shutoff after 90 seconds
 - Maximum volume limit of 2 liters
-- Visual and status indicators for system state
 - Connection monitoring with automatic reconnection
+- Input validation for all parameters
 
 ## 📖 Usage
 
 1. Power on the system
-2. Connect to the Blynk app
-3. Select desired cup size (50ml - 2000ml)
-4. Monitor pour status through the app
-5. System will automatically stop when target volume is reached
+2. Connect to ThingsBoard (automatic)
+3. Send RPC commands through ThingsBoard:
+   - `setCupSize` - Set desired volume (50ml - 2000ml)
+   - `setMlPerPulse` - Calibrate flow sensor
+   - `stopPour` - Emergency stop
+4. Monitor pour status through ThingsBoard telemetry
+5. System will automatically stop when the target volume is reached
 
 ### Normal Startup Sequence
 
-When the system boots up normally, you should see this LED pattern sequence:
+When the system boots up normally, you should see this in the serial monitor:
 
-1. **System Start**: 1 long blink (500ms on, 500ms off) - indicates the ESP32 is starting up
-2. **Connecting**: Medium speed continuous blinking (300ms intervals) - system is connecting to WiFi and Blynk
-3. **WiFi Connected**: 2 quick blinks - WiFi connection established
-4. **Blynk Connected**: 2 quick blinks with pause - Blynk connection established  
-5. **System Ready**: 4 quick blinks - initialization complete, all systems operational
-6. **Ready State**: Slow blink every 2 seconds - normal operational state, ready for commands
+1. **System Start**: "🍺 Smart Beer Tap System Starting..."
+2. **Config Validation**: Configuration validation messages
+3. **Wi-Fi Connection**: Wi-Fi connection status and IP address
+4. **ThingsBoard Connection**: Connection attempts and success confirmation
+5. **System Ready**: "✅ SETUP COMPLETE! 🍺 Smart Beer Tap ready for operation"
 
-**Total startup time**: Typically 10-30 seconds depending on network conditions.
+**Total startup time**: Typically 10–30 seconds depending on network conditions.
 
-### Troubleshooting Startup Issues
+## 📊 Status Monitoring
 
-If the startup sequence doesn't complete as expected:
+The system provides status information through:
 
-#### **Stuck on "Connecting" pattern** (continuous medium blinking)
-- **Issue**: Cannot connect to WiFi or Blynk
-- **Check**: 
-  - WiFi credentials in code are correct
-  - WiFi network is available and working
-  - Blynk auth token is valid
-  - Internet connection is stable
-- **Solution**: Verify credentials, check network, restart router if needed
+### Serial Monitor (115200 baud)
+- Detailed startup sequence
+- Configuration validation results
+- Network connection status
+- Pour progress and completion
+- Error messages with solutions
 
-#### **No WiFi Connected pattern** (missing 2 quick blinks)
-- **Issue**: WiFi connection failed
-- **Check**: WiFi SSID and password in code
-- **Solution**: Update WiFi credentials and re-upload code
+### ThingsBoard Telemetry
+- `cupSize` - Current target volume
+- `ready` - System ready status
+- `mlPerPulse` - Current flow sensor calibration
 
-#### **No Blynk Connected pattern** (missing 2 quick blinks with pause)
-- **Issue**: Blynk service connection failed
-- **Check**: 
-  - Blynk auth token is correct
-  - Blynk device is online in the app
-  - Internet connection allows HTTPS traffic
-- **Solution**: Verify Blynk credentials, check firewall settings
+## 📱 ThingsBoard Integration
 
-#### **System never reaches Ready state** (no slow blinking)
-- **Issue**: Initialization failed
-- **Check**: Serial monitor for error messages
-- **Solution**: Check hardware connections, restart system
+### Device Configuration
 
-#### **Error patterns during startup**
-- **Input Error** (short-long-short): Invalid configuration detected
-- **Network Error** (long-long-short): Network connectivity issues
-- **Critical Error** (very fast blinking): Hardware or software malfunction
+The system sends the following telemetry to ThingsBoard:
 
-**Serial Monitor**: Always check the serial monitor (115200 baud) for detailed error messages and debugging information during startup.
+| Attribute    | Type    | Range     | Description             |
+|--------------|---------|-----------|-------------------------|
+| `cupSize`    | Integer | 0-2000 ml | Target pour volume      |
+| `ready`      | Integer | 0 or 1    | System ready status     |
+| `mlPerPulse` | Float   | 0.5-10.0  | Flow sensor calibration |
 
-## 📊 Status Indicators
+### RPC Commands
 
-The system uses an advanced LED pattern system to provide clear visual feedback about the current state and any issues:
+| Command         | Parameters        | Description            |
+|-----------------|-------------------|------------------------|
+| `setCupSize`    | Integer (50-2000) | Set target pour volume |
+| `setMlPerPulse` | Float (0.5-10.0)  | Calibrate flow sensor  |
+| `stopPour`      | Integer (1)       | Emergency stop         |
 
-### LED Pattern System
+## 💻 Code Architecture
 
-#### **Background Patterns** (Continuous)
-- **Ready State**: Slow blink every 2 seconds - system is ready for operation
-- **Pouring State**: Fast toggle every 250ms - actively dispensing beer
+The project consists of the following modular components:
 
-#### **Event Patterns** (One-time notifications)
-- **System Start**: 1 long blink - system is starting up
-- **System Ready**: 4 quick blinks - system initialization complete
-- **Pour Complete**: 3 medium blinks - dispensing finished successfully
-- **Cup Size Change**: 2 medium blinks - new cup size selected
+```
+src/
+├── config.h              # Configuration file (user credentials)
+├── constants.h           # System constants and ThingsBoard keys
+├── pour_system.h/.cpp    # Core pouring logic and safety features
+├── network_manager.h/.cpp # WiFi and connection management
+├── config_validator.h/.cpp # Configuration validation
+└── beer-tap.ino          # Main Arduino sketch
+```
 
-#### **Connection Patterns**
-- **WiFi Connected**: 2 quick blinks - WiFi connection established
-- **Blynk Connected**: 2 quick blinks with pause - Blynk connection established
-
-#### **Error Patterns** (Repeating until resolved)
-- **Critical Error**: Very fast continuous blink (100ms) - system malfunction
-- **Warning**: Medium speed blink (300ms) - non-critical issues
-- **Input Error**: Short-long-short sequence - invalid settings detected
-- **Timeout Error**: Long-short-long sequence - pour timeout occurred
-- **Volume Error**: Short-short-long sequence - maximum volume exceeded
-- **Network Error**: Long-long-short sequence - WiFi/Blynk connection issues
-- **Sensor Error**: Short-long-long sequence - flow sensor problems
-
-#### **Pattern Priority**
-- Error patterns interrupt background patterns
-- Event patterns play once then return to background
-- Critical errors take precedence over warnings
-- System maintains visual feedback even during network issues
-
-### Additional Status Sources
-- Blynk app provides real-time status updates
-- Serial monitor shows detailed system statistics and error logs
-
-## 📱 Blynk Integration
-
-### Widget Configuration
-
-| Widget               | Type          | Range            | Description             |
-| -------------------- | ------------- | ---------------- | ----------------------- |
-| Cup Size (V1)        | Value Display | 0-2000 ml        | Target pour volume      |
-| Status (V2)          | Label         | Text             | System status display   |
-| Calibration (V3)     | Value Display | 1.0-5.0 ml/pulse | Flow sensor calibration |
-
-### Setup Instructions
-
-1. Create a new device in Blynk IoT
-2. Add the widgets as specified in the table above
-3. Configure each widget with the following settings:
-   - Cup Size: Step size 50ml, Color #2196F3, Range 0-2000ml
-   - Status: Large font, Color #4CAF50
-   - Calibration: Step size 0.1, Color #FF9800, Range 0.5-10.0
-
-## 💻 Code
-
-The project consists of the following files:
-
-- [`main.ino`](main.ino) - Main Arduino sketch containing the core functionality
-  - Flow sensor integration
-  - Blynk communication
-  - Pour control logic
-  - Safety features implementation
-
-To get started with the code:
-
-1. Clone the repository
-2. Open `main.ino` in Arduino IDE
-3. Install required libraries
-4. Configure your credentials
-5. Upload to ESP32
+### Key Features:
+- **Modular Architecture**: Each component has specific responsibilities
+- **Safety First**: Multiple safety checks and automatic shutoffs
+- **Input Validation**: All parameters validated before use
+- **Error Handling**: Comprehensive error detection and reporting
 
 ## 💳 Payment Integration
 
@@ -299,7 +231,7 @@ The system integrates with blockchain payments through the [yodl-store-webhook](
 
 - Processes blockchain transaction notifications
 - Validates payment details
-- Triggers the beer tap through Blynk integration
+- Triggers the beer tap through ThingsBoard RPC calls
 - Supports multiple beer taps with different configurations
 
 ### Setup Steps
@@ -309,17 +241,18 @@ The system integrates with blockchain payments through the [yodl-store-webhook](
    ```env
    BEER_TAPS='[
      {
-       "transactionReceiverEns": "your.ens.name",
-       "transactionMemo": "Beer",
-       "transactionCurrency": "EUR",
-       "transactionAmount": "4.2",
-       "blynkDeviceToken": "YOUR_BLYNK_TOKEN",
-       "blynkDevicePin": "V1",
-       "blynkDevicePinValue": "500"
+       "id": "beer-tap-0",
+       "transactionReceiverEns": "0xtam.eth",
+       "transactionMemo": "",
+       "transactionCurrency": "USD",
+       "transactionAmount": "0.92",
+       "thingsBoardDeviceId": "YOUR_THINGSBOARD_DEVICE_ID",
+       "thingsBoardCupSize": 200,
+       "thingsBoardServerUrl": "https://thingsboard.cloud"
      }
    ]'
    ```
-3. Set up the ThingsBoard device token and RPC method mapping
+3. Set up the ThingsBoard device ID and cup size mapping
 
 ## 🤝 Contributing
 
@@ -331,9 +264,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🔗 Related Projects
 
@@ -343,11 +273,16 @@ This project can be integrated with the [yodl-store-webhook](https://github.com/
 
 - Processes blockchain transaction notifications
 - Validates payment details
-- Triggers the beer tap through Blynk integration
+- Triggers the beer tap through ThingsBoard RPC calls
 - Supports multiple beer taps with different configurations
 
 To integrate with the webhook service:
 
 1. Deploy the webhook service
-2. Configure your beer tap in the webhook's environment variables
-3. Set up the Blynk device token and pin mapping
+2. Configure your beer tap with your specific details:
+   - Replace `transactionReceiverEns` with your ENS name or wallet address
+   - Set your desired `transactionAmount` and `transactionCurrency`
+   - Use your ThingsBoard device ID from the device details page
+   - Configure `thingsBoardCupSize` for the volume to dispense (in ml)
+   - Set `thingsBoardServerUrl` to your ThingsBoard instance URL
+3. The webhook will automatically send `setCupSize` RPC commands to trigger pours
