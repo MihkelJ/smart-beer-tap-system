@@ -15,9 +15,9 @@ A complete automated beer dispensing system that combines ESP32-based hardware c
 **New to the project? Start here:**
 
 1. **📖 [Read the Setup Guide](SETUP.md)** - Complete step-by-step instructions
-2. **⚙️Configure your credentials** - Copy and edit `examples/config_template.h`
+2. **⚙️ Configure ThingsBoard** - Copy and edit `examples/config_template.h`
 3. **📱 Create ThingsBoard device** - Follow the guide for easy setup
-4. **🔧 Upload code** - The system will validate your config automatically
+4. **🔧 Upload code** - The system validates your config automatically
 
 **Setup validation built-in!** The system checks your configuration and provides clear error messages through serial output.
 
@@ -99,11 +99,12 @@ For experienced users:
 # 1. Copy config template
 cp examples/config_template.h src/config.h
 
-# 2. Edit with your credentials  
+# 2. Edit with your ThingsBoard credentials  
 nano src/config.h
 
 # 3. Upload to ESP32
 # The system will validate your config automatically!
+# WiFi is configured via web portal on first boot
 ```
 
 ### Built-in Validation ✅
@@ -122,12 +123,13 @@ The system includes **automatic configuration validation**:
 
 **"Config Error" Message:**
 - Copy template: `cp examples/config_template.h src/config.h`
-- Edit with real credentials (no placeholder text)
-- Make sure all fields are filled
+- Edit with real ThingsBoard credentials (no placeholder text)
+- Make sure ThingsBoard server and access token are filled
 
-**Wi-Fi Won't Connect:**
+**WiFi Configuration Issues:**
 - Use 2.4 GHz network only (ESP32 limitation)
-- Check SSID/password spelling
+- Look for "BeerTap-Setup" network when device starts
+- Browse to 192.168.4.1 to configure WiFi
 - Move ESP32 closer to the router
 
 **ThingsBoard Won't Connect:**
@@ -167,7 +169,7 @@ When the system boots up normally, you should see this in the serial monitor:
 4. **ThingsBoard Connection**: Connection attempts and success confirmation
 5. **System Ready**: "✅ SETUP COMPLETE! 🍺 Smart Beer Tap ready for operation"
 
-**Total startup time**: Typically 10–30 seconds depending on network conditions.
+**Total startup time**: Typically 10-30 seconds depending on network conditions.
 
 ## 📊 Status Monitoring
 
