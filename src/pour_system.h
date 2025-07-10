@@ -18,7 +18,6 @@ private:
   unsigned long pourStartTime;
 
   // System state flags
-  bool isReady;
   bool isPouring;
   int currentCupSize;
 
@@ -50,7 +49,7 @@ public:
   static void IRAM_ATTR pulseCounter();
 
   // Getters for status
-  bool getIsReady() const { return isReady; }
+  bool getIsReady() const { return !isPouring; }
   bool getIsPouring() const { return isPouring; }
   float getTotalVolume() const { return totalVolume; }
   int getCurrentCupSize() const { return currentCupSize; }

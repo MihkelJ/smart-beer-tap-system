@@ -15,7 +15,6 @@ PourSystem::PourSystem()
   mlPerPulse = DEFAULT_ML_PER_PULSE;
   totalVolume = 0;
   pourStartTime = 0;
-  isReady = true;
   isPouring = false;
   currentCupSize = 0;
   lastWatchdogTime = 0;
@@ -60,7 +59,6 @@ void PourSystem::stopPour()
   Serial.println("Pour complete - " + String(totalVolume) + "ml poured");
   resetCounters();
   isPouring = false;
-  isReady = true;
   currentCupSize = 0; // Reset cup size
   // ThingsBoard attribute update will be called from main file
 }
@@ -75,7 +73,6 @@ void PourSystem::emergencyStop()
     // Reset system state
     resetCounters();
     isPouring = false;
-    isReady = true;
     currentCupSize = 0; // Reset cup size
   }
   else
@@ -96,7 +93,6 @@ void PourSystem::handleCupSizeChange(int value)
 {
   if (value == 0)
   {
-    isReady = true;
     resetCounters();
     setRelay(true);
     isPouring = false;
@@ -110,7 +106,6 @@ void PourSystem::handleCupSizeChange(int value)
       return;
     }
     currentCupSize = value;
-    isReady = false;
     isPouring = false; // Reset pouring state
     resetCounters();   // Reset counters for new pour
     Serial.println("✅ Cup size set to " + String(currentCupSize) + "ml");
@@ -203,13 +198,12 @@ void PourSystem::update()
 
 
   // Enhanced pour start logic with error handling
-  if (!isReady && !isPouring && totalVolume == 0)
+  if (isPouring == false && totalVolume == 0 && currentCupSize > 0)
   {
     // Additional safety checks before starting pour
     if (currentCupSize <= 0)
     {
       Serial.println("Error: Invalid cup size for pour start");
-      isReady = true;           // Reset to ready state
       return;
     }
 
