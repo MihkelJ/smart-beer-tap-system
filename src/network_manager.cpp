@@ -5,28 +5,19 @@
 // Global instance
 ThingsBoardNetworkManager networkManager;
 
-ThingsBoardNetworkManager::ThingsBoardNetworkManager()
-{
-  lastWifiConnected = false;
-}
+ThingsBoardNetworkManager::ThingsBoardNetworkManager() { lastWifiConnected = false; }
 
-void ThingsBoardNetworkManager::init()
-{
+void ThingsBoardNetworkManager::init() {
   Serial.println("Status: Connecting to WiFi");
   // ThingsBoard.connect will be called from main file
 }
 
-void ThingsBoardNetworkManager::handleWifiStatusChange()
-{
+void ThingsBoardNetworkManager::handleWifiStatusChange() {
   bool wifiConnected = (WiFi.status() == WL_CONNECTED);
-  if (wifiConnected != lastWifiConnected)
-  {
-    if (wifiConnected)
-    {
+  if (wifiConnected != lastWifiConnected) {
+    if (wifiConnected) {
       Serial.println("WiFi connection established");
-    }
-    else
-    {
+    } else {
       Serial.println("WiFi connection failed - attempting reconnect");
       WiFi.reconnect();
     }

@@ -3,20 +3,19 @@
 
 #include <Arduino.h>
 
-class ConfigValidator
-{
-private:
+class ConfigValidator {
+ private:
   bool hasValidConfig;
   String errorMessage;
 
-public:
+ public:
   ConfigValidator();
   bool validateConfiguration();
   void displayConfigErrors();
   String getErrorMessage() const { return errorMessage; }
   bool isConfigValid() const { return hasValidConfig; }
 
-private:
+ private:
   bool checkThingsBoardCredentials();
   bool checkWiFiCredentials();
   bool containsPlaceholder(const String &value);
@@ -26,4 +25,4 @@ private:
 // Global instance
 extern ConfigValidator configValidator;
 
-#endif // CONFIG_VALIDATOR_H
+#endif  // CONFIG_VALIDATOR_H

@@ -5,9 +5,8 @@
 #include <WiFi.h>
 #include "constants.h"
 
-class PourSystem
-{
-private:
+class PourSystem {
+ private:
   // Flow sensor variables
   volatile unsigned long pulseCount;
   float mlPerPulse;
@@ -24,7 +23,7 @@ private:
   // Timing variables
   unsigned long lastWatchdogTime;
 
-public:
+ public:
   PourSystem();
   void init();
   void update();
@@ -38,7 +37,6 @@ public:
 
   // Relay control
   void setRelay(bool state);
-
 
   // ThingsBoard RPC handlers
   void handleCupSizeChange(int value);
@@ -61,4 +59,4 @@ public:
 // Global instance
 extern PourSystem pourSystem;
 
-#endif // POUR_SYSTEM_H
+#endif  // POUR_SYSTEM_H

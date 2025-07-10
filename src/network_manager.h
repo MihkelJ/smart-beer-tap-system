@@ -7,12 +7,11 @@
 
 // Forward declarations for ThingsBoard - actual includes will be in main file
 
-class ThingsBoardNetworkManager
-{
-private:
+class ThingsBoardNetworkManager {
+ private:
   bool lastWifiConnected;
 
-public:
+ public:
   ThingsBoardNetworkManager();
   void init();
   // Connection recovery
@@ -22,4 +21,4 @@ public:
 // Global instance
 extern ThingsBoardNetworkManager networkManager;
 
-#endif // NETWORK_MANAGER_H
+#endif  // NETWORK_MANAGER_H

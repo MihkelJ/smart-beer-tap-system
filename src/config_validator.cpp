@@ -4,28 +4,24 @@
 // Global instance
 ConfigValidator configValidator;
 
-ConfigValidator::ConfigValidator()
-{
+ConfigValidator::ConfigValidator() {
   hasValidConfig = false;
   errorMessage = "";
 }
 
-bool ConfigValidator::validateConfiguration()
-{
+bool ConfigValidator::validateConfiguration() {
   hasValidConfig = true;
   errorMessage = "";
 
   Serial.println("=== Configuration Validation ===");
 
   // Check ThingsBoard credentials
-  if (!checkThingsBoardCredentials())
-  {
+  if (!checkThingsBoardCredentials()) {
     return false;
   }
 
   // Check WiFi credentials
-  if (!checkWiFiCredentials())
-  {
+  if (!checkWiFiCredentials()) {
     return false;
   }
 
@@ -33,40 +29,35 @@ bool ConfigValidator::validateConfiguration()
   return true;
 }
 
-bool ConfigValidator::checkThingsBoardCredentials()
-{
+bool ConfigValidator::checkThingsBoardCredentials() {
   String server = String(THINGSBOARD_SERVER);
   String accessToken = String(THINGSBOARD_ACCESS_TOKEN);
 
   // Check for placeholder values
-  if (containsPlaceholder(server))
-  {
+  if (containsPlaceholder(server)) {
     setError("❌ THINGSBOARD_SERVER contains placeholder text");
     return false;
   }
 
-  if (containsPlaceholder(accessToken))
-  {
+  if (containsPlaceholder(accessToken)) {
     setError("❌ THINGSBOARD_ACCESS_TOKEN contains placeholder text");
     return false;
   }
 
   // Check format and length
-  if (server.length() < 5)
-  {
+  if (server.length() < 5) {
     setError("❌ THINGSBOARD_SERVER too short (should be a valid URL)");
     return false;
   }
 
-  if (accessToken.length() < 20)
-  {
+  if (accessToken.length() < 20) {
     setError("❌ THINGSBOARD_ACCESS_TOKEN too short (should be ~20 characters)");
     return false;
   }
 
   // Basic URL validation
-  if (!server.endsWith(".io") && !server.endsWith(".com") && !server.endsWith(".org") && server.indexOf(".") < 0)
-  {
+  if (!server.endsWith(".io") && !server.endsWith(".com") && !server.endsWith(".org") &&
+      server.indexOf(".") < 0) {
     setError("❌ THINGSBOARD_SERVER format invalid (should be a valid domain)");
     return false;
   }
@@ -75,38 +66,29 @@ bool ConfigValidator::checkThingsBoardCredentials()
   return true;
 }
 
-bool ConfigValidator::checkWiFiCredentials()
-{
+bool ConfigValidator::checkWiFiCredentials() {
   // WiFi credentials are now managed by WiFiManager captive portal
   // No need to validate hardcoded credentials as they are configured dynamically
   Serial.println("✅ WiFi credentials managed by WiFiManager - no validation needed");
   return true;
 }
 
-bool ConfigValidator::containsPlaceholder(const String &value)
-{
+bool ConfigValidator::containsPlaceholder(const String &value) {
   // Check for common placeholder patterns
-  return (value.indexOf("YOUR_") >= 0 ||
-          value.indexOf("REPLACE") >= 0 ||
-          value.indexOf("HERE") >= 0 ||
-          value.indexOf("TEMPLATE") >= 0 ||
-          value.indexOf("EXAMPLE") >= 0 ||
-          value == "your" ||
-          value == "example" ||
+  return (value.indexOf("YOUR_") >= 0 || value.indexOf("REPLACE") >= 0 ||
+          value.indexOf("HERE") >= 0 || value.indexOf("TEMPLATE") >= 0 ||
+          value.indexOf("EXAMPLE") >= 0 || value == "your" || value == "example" ||
           value.length() == 0);
 }
 
-void ConfigValidator::setError(const String &error)
-{
+void ConfigValidator::setError(const String &error) {
   hasValidConfig = false;
   errorMessage = error;
   Serial.println(error);
 }
 
-void ConfigValidator::displayConfigErrors()
-{
-  if (!hasValidConfig)
-  {
+void ConfigValidator::displayConfigErrors() {
+  if (!hasValidConfig) {
     Serial.println("");
     Serial.println("🚨 CONFIGURATION ERROR 🚨");
     Serial.println(errorMessage);

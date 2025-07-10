@@ -14,17 +14,17 @@
  */
 
 // Include configuration and modules
-#include "src/config.h"
-#include "src/constants.h"
-#include <WiFi.h>
-#include <WiFiManager.h>          // WiFiManager by Tzapu - Install via Arduino Library Manager
 #include <Arduino_MQTT_Client.h>
 #include <Server_Side_RPC.h>
 #include <ThingsBoard.h>
-#include "src/pour_system.h"
-#include "src/network_manager.h"
+#include <WiFi.h>
+#include <WiFiManager.h>  // WiFiManager by Tzapu - Install via Arduino Library Manager
+#include "src/config.h"
 #include "src/config_validator.h"
+#include "src/constants.h"
 #include "src/led_controller.h"
+#include "src/network_manager.h"
+#include "src/pour_system.h"
 
 // Initialize ThingsBoard client
 WiFiClient espClient;
@@ -32,8 +32,7 @@ Arduino_MQTT_Client mqttClient(espClient);
 constexpr size_t MAX_RPC_SUBSCRIPTIONS = 4U;
 constexpr size_t MAX_RPC_RESPONSE = 256U;
 Server_Side_RPC<MAX_RPC_SUBSCRIPTIONS, MAX_RPC_RESPONSE> rpc;
-IAPI_Implementation *apis[1U] = {
-    &rpc};
+IAPI_Implementation *apis[1U] = {&rpc};
 ThingsBoard tb(mqttClient, 256U, 256U, 1024U, apis + 0U, apis + 1U);
 
 // LED controller instance
@@ -43,14 +42,14 @@ LEDController ledController;
 WiFiManager wifiManager;
 
 // Custom WiFiManager parameters
-WiFiManagerParameter* custom_tb_server = nullptr;
+WiFiManagerParameter *custom_tb_server = nullptr;
 
 // Connection state tracking
 bool thingsBoardConnected = false;
 bool rpcSubscribed = false;
 unsigned long lastConnectionAttempt = 0;
-const unsigned long CONNECTION_RETRY_INTERVAL = 5000; // 5 seconds
-const unsigned long CONNECTION_TIMEOUT = 10000;       // 10 seconds timeout for connection attempt
+const unsigned long CONNECTION_RETRY_INTERVAL = 5000;  // 5 seconds
+const unsigned long CONNECTION_TIMEOUT = 10000;        // 10 seconds timeout for connection attempt
 
 // Helper macro for array size
 #define COUNT_OF(x) ((sizeof(x) / sizeof(0 [x])) / ((size_t)(!(sizeof(x) % sizeof(0 [x])))))
@@ -62,30 +61,27 @@ void processStopCommand(const JsonVariantConst &data, JsonDocument &response);
 void processWiFiResetCommand(const JsonVariantConst &data, JsonDocument &response);
 
 // RPC callback array
-const RPC_Callback callbacks[] = {
-    {TB_SET_CUP_SIZE_RPC, processCupSizeChange},
-    {TB_SET_ML_PER_PULSE_RPC, processMlPerPulseChange},
-    {TB_STOP_POUR_RPC, processStopCommand},
-    {TB_RESET_WIFI_RPC, processWiFiResetCommand}};
+const RPC_Callback callbacks[] = {{TB_SET_CUP_SIZE_RPC, processCupSizeChange},
+                                  {TB_SET_ML_PER_PULSE_RPC, processMlPerPulseChange},
+                                  {TB_STOP_POUR_RPC, processStopCommand},
+                                  {TB_RESET_WIFI_RPC, processWiFiResetCommand}};
 
-void setup()
-{
+void setup() {
   Serial.begin(115200);
   Serial.println();
   Serial.println("🍺 Smart Beer Tap System Starting...");
   Serial.println("=====================================");
-  
+
   // Initialize LED controller first for visual feedback
   ledController.begin();
   ledController.setState(STATE_BOOTING);
 
   // Validate configuration before proceeding
-  if (!configValidator.validateConfiguration())
-  {
+  if (!configValidator.validateConfiguration()) {
     Serial.println("");
     Serial.println("❌ SETUP FAILED - Configuration Invalid!");
     configValidator.displayConfigErrors();
-    
+
     // Indicate configuration error with LED
     ledController.setState(STATE_CONFIG_ERROR);
 
@@ -106,34 +102,35 @@ void setup()
   // Configure WiFi Manager
   Serial.println("📡 Starting WiFi configuration...");
   ledController.setState(STATE_WIFI_PORTAL_ACTIVE);
-  
+
   // Configure WiFiManager settings
   wifiManager.setTimeout(WIFI_PORTAL_TIMEOUT);
   wifiManager.setConfigPortalBlocking(false);
   wifiManager.setDebugOutput(true);
-  
+
   // Custom branding and information
   wifiManager.setTitle("🍺 Beer Tap WiFi Setup");
   wifiManager.setDarkMode(true);
-  
+
   // Optional: Add custom parameters for ThingsBoard server override
-  custom_tb_server = new WiFiManagerParameter("tb_server", "ThingsBoard Server (optional)", THINGSBOARD_SERVER, 50);
+  custom_tb_server = new WiFiManagerParameter("tb_server", "ThingsBoard Server (optional)",
+                                              THINGSBOARD_SERVER, 50);
   wifiManager.addParameter(custom_tb_server);
-  
+
   // Set custom callback for when user is configuring
-  wifiManager.setAPCallback([](WiFiManager* wm) {
+  wifiManager.setAPCallback([](WiFiManager *wm) {
     ledController.setState(STATE_WIFI_PORTAL_CONFIG);
     Serial.println("🌐 WiFi provisioning portal started");
     Serial.print("Connect to AP: ");
     Serial.println(WIFI_PORTAL_SSID);
     Serial.println("Browse to: 192.168.4.1");
   });
-  
+
   // Set callback for save config
   wifiManager.setSaveConfigCallback([]() {
     ledController.setState(STATE_WIFI_CONNECTING);
     Serial.println("📝 WiFi configuration saved, connecting...");
-    
+
     // Handle custom ThingsBoard server if provided
     if (custom_tb_server != nullptr) {
       String customTbServer = custom_tb_server->getValue();
@@ -166,41 +163,36 @@ void setup()
   Serial.println("🍺 Smart Beer Tap ready for operation");
   Serial.println("📱 Use your ThingsBoard dashboard to control the tap");
   Serial.println("");
-  
+
   // Set system ready LED status
   ledController.setState(STATE_SYSTEM_READY);
 }
 
-void loop()
-{
+void loop() {
   // Update LED controller
   ledController.update();
-  
+
   // Process WiFi Manager events (non-blocking)
   wifiManager.process();
-  
+
   // If configuration is invalid, just wait
-  if (!configValidator.isConfigValid())
-  {
+  if (!configValidator.isConfigValid()) {
     ledController.setState(STATE_CONFIG_ERROR);
     delay(100);
     return;
   }
 
   // Handle ThingsBoard connection
-  if (WiFi.status() == WL_CONNECTED)
-  {
-    if (!thingsBoardConnected)
-    {
+  if (WiFi.status() == WL_CONNECTED) {
+    if (!thingsBoardConnected) {
       // Try to connect to ThingsBoard
-      if (millis() - lastConnectionAttempt > CONNECTION_RETRY_INTERVAL)
-      {
+      if (millis() - lastConnectionAttempt > CONNECTION_RETRY_INTERVAL) {
         Serial.println("📡 Attempting to connect to ThingsBoard...");
         Serial.print("Server: ");
         Serial.println(THINGSBOARD_SERVER);
         Serial.print("Token: ");
         Serial.println(String(THINGSBOARD_ACCESS_TOKEN).substring(0, 8) + "...");
-        
+
         // Set ThingsBoard connecting LED status
         ledController.setState(STATE_TB_CONNECTING);
 
@@ -209,10 +201,8 @@ void loop()
         bool connectionResult = false;
 
         // Try connection with timeout
-        while (millis() - connectionStart < CONNECTION_TIMEOUT)
-        {
-          if (tb.connect(THINGSBOARD_SERVER, THINGSBOARD_ACCESS_TOKEN))
-          {
+        while (millis() - connectionStart < CONNECTION_TIMEOUT) {
+          if (tb.connect(THINGSBOARD_SERVER, THINGSBOARD_ACCESS_TOKEN)) {
             connectionResult = true;
             break;
           }
@@ -221,29 +211,23 @@ void loop()
           pourSystem.checkWatchdog();
         }
 
-        if (connectionResult)
-        {
+        if (connectionResult) {
           Serial.println("✅ ThingsBoard connected!");
           thingsBoardConnected = true;
           ledController.setState(STATE_TB_CONNECTED);
 
           // Subscribe to RPC commands
-          if (rpc.RPC_Subscribe(callbacks + 0U, callbacks + COUNT_OF(callbacks)))
-          {
+          if (rpc.RPC_Subscribe(callbacks + 0U, callbacks + COUNT_OF(callbacks))) {
             Serial.println("✅ RPC subscriptions successful!");
             rpcSubscribed = true;
 
             // Send initial attributes
             tb.sendAttributeData(TB_CUP_SIZE_ATTR, 0);
             tb.sendAttributeData(TB_ML_PER_PULSE_ATTR, pourSystem.getMlPerPulse());
-          }
-          else
-          {
+          } else {
             Serial.println("❌ RPC subscription failed!");
           }
-        }
-        else
-        {
+        } else {
           Serial.println("❌ ThingsBoard connection failed, retrying...");
           Serial.print("WiFi Status: ");
           Serial.println(WiFi.status());
@@ -253,15 +237,11 @@ void loop()
         }
         lastConnectionAttempt = millis();
       }
-    }
-    else
-    {
+    } else {
       // Already connected, run normal loop
       tb.loop();
     }
-  }
-  else
-  {
+  } else {
     // WiFi disconnected, reset ThingsBoard connection
     thingsBoardConnected = false;
     rpcSubscribed = false;
@@ -280,7 +260,7 @@ void loop()
   // Handle pour state changes and LED updates
   static bool lastPourState = false;
   bool currentPourState = pourSystem.getIsPouring();
-  
+
   // Update pour LED status
   if (currentPourState) {
     ledController.setState(STATE_POURING);
@@ -288,17 +268,15 @@ void loop()
     // Pour just completed - temporarily show completion
     ledController.setTemporaryState(STATE_POUR_COMPLETE, 3000);
   }
-  
+
   // Send cup size reset to ThingsBoard when pour completes
-  if (thingsBoardConnected)
-  {
-    if (lastPourState && !currentPourState)
-    {
+  if (thingsBoardConnected) {
+    if (lastPourState && !currentPourState) {
       tb.sendAttributeData(TB_CUP_SIZE_ATTR, 0);
       Serial.println("📱 Cup size reset to 0 after pour completion");
     }
   }
-  
+
   lastPourState = currentPourState;
 
   // Check for WiFi reset via serial command
@@ -321,8 +299,7 @@ void loop()
 
 // ThingsBoard RPC callback handlers
 
-void processCupSizeChange(const JsonVariantConst &data, JsonDocument &response)
-{
+void processCupSizeChange(const JsonVariantConst &data, JsonDocument &response) {
   int value = data.as<int>();
   Serial.print("📱 ThingsBoard received cup size: ");
   Serial.print(value);
@@ -330,8 +307,7 @@ void processCupSizeChange(const JsonVariantConst &data, JsonDocument &response)
   pourSystem.handleCupSizeChange(value);
 
   // Send attribute update to ThingsBoard
-  if (thingsBoardConnected)
-  {
+  if (thingsBoardConnected) {
     tb.sendAttributeData(TB_CUP_SIZE_ATTR, value);
     Serial.println("📱 Cup size attribute sent to ThingsBoard: " + String(value) + "ml");
   }
@@ -339,14 +315,12 @@ void processCupSizeChange(const JsonVariantConst &data, JsonDocument &response)
   response.set(value);
 }
 
-void processMlPerPulseChange(const JsonVariantConst &data, JsonDocument &response)
-{
+void processMlPerPulseChange(const JsonVariantConst &data, JsonDocument &response) {
   float value = data.as<float>();
   pourSystem.handleMlPerPulseChange(value);
 
   // Send attribute update to ThingsBoard
-  if (thingsBoardConnected)
-  {
+  if (thingsBoardConnected) {
     tb.sendAttributeData(TB_ML_PER_PULSE_ATTR, value);
     Serial.println("📱 ML per pulse attribute sent to ThingsBoard: " + String(value));
   }
@@ -354,18 +328,16 @@ void processMlPerPulseChange(const JsonVariantConst &data, JsonDocument &respons
   response.set(value);
 }
 
-void processStopCommand(const JsonVariantConst &data, JsonDocument &response)
-{
+void processStopCommand(const JsonVariantConst &data, JsonDocument &response) {
   int value = data.as<int>();
-  if (value == 1) // Button pressed (only act on press, not release)
+  if (value == 1)  // Button pressed (only act on press, not release)
   {
     pourSystem.emergencyStop();
     // Flash error LED briefly to indicate emergency stop
     ledController.setTemporaryState(STATE_ERROR, 1000);
-    
+
     // Reset cup size display on dashboard
-    if (thingsBoardConnected)
-    {
+    if (thingsBoardConnected) {
       tb.sendAttributeData(TB_CUP_SIZE_ATTR, 0);
       Serial.println("📱 Dashboard cup size reset to 0");
     }
@@ -373,20 +345,19 @@ void processStopCommand(const JsonVariantConst &data, JsonDocument &response)
   response.set("stopped");
 }
 
-void processWiFiResetCommand(const JsonVariantConst &data, JsonDocument &response)
-{
+void processWiFiResetCommand(const JsonVariantConst &data, JsonDocument &response) {
   int value = data.as<int>();
-  if (value == 1) // Button pressed (only act on press, not release)
+  if (value == 1)  // Button pressed (only act on press, not release)
   {
     Serial.println("🔄 WiFi reset requested from ThingsBoard");
-    
+
     // Indicate WiFi reset in progress
     ledController.setTemporaryState(STATE_WIFI_PORTAL_ACTIVE, 2000);
-    
+
     // Reset WiFi settings and restart
     wifiManager.resetSettings();
     Serial.println("📝 WiFi settings cleared, restarting...");
-    
+
     delay(1000);
     ESP.restart();
   }
