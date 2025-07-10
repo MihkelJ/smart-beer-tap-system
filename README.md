@@ -15,9 +15,9 @@ A complete automated beer dispensing system that combines ESP32-based hardware c
 **New to the project? Start here:**
 
 1. **📖 [Read the Setup Guide](SETUP.md)** - Complete step-by-step instructions
-2. **⚙️ Configure your credentials—**Copy and edit `examples/config_template.h`
-3. **📱 Create ThingsBoard device—**Follow the guide for easy setup
-4. **🔧 Upload code—**The system will validate your config automatically
+2. **⚙️Configure your credentials** - Copy and edit `examples/config_template.h`
+3. **📱 Create ThingsBoard device** - Follow the guide for easy setup
+4. **🔧 Upload code** - The system will validate your config automatically
 
 **Setup validation built-in!** The system checks your configuration and provides clear error messages through serial output.
 
