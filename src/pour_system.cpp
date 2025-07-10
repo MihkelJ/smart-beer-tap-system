@@ -15,13 +15,10 @@ PourSystem::PourSystem()
   mlPerPulse = DEFAULT_ML_PER_PULSE;
   totalVolume = 0;
   pourStartTime = 0;
-  totalPours = 0;
-  totalVolumePoured = 0;
   isReady = true;
   isPouring = false;
   currentCupSize = 0;
   lastWatchdogTime = 0;
-  lastStatsTime = 0;
 }
 
 void PourSystem::init()
@@ -33,7 +30,6 @@ void PourSystem::init()
   attachInterrupt(digitalPinToInterrupt(FLOW_SENSOR_PIN), pulseCounter, RISING);
 
   lastWatchdogTime = millis();
-  lastStatsTime = millis();
 }
 
 void PourSystem::setRelay(bool state)
@@ -52,32 +48,15 @@ void PourSystem::resetCounters()
 
 void PourSystem::startPour()
 {
-  // Bounds checking for totalPours
-  if (totalPours >= ULONG_MAX - 1)
-  {
-    Serial.println("Warning: Pour count approaching maximum");
-    totalPours = 0; // Reset to prevent overflow
-  }
-
   isPouring = true;
   setRelay(false);
   pourStartTime = millis();
-  totalPours++;
   Serial.println("Pour started");
 }
 
 void PourSystem::stopPour()
 {
   setRelay(true);
-
-  // Bounds checking for totalVolumePoured
-  if (totalVolumePoured > (ULONG_MAX - totalVolume - 1000))
-  {
-    Serial.println("Warning: Total volume approaching maximum, resetting");
-    totalVolumePoured = 0; // Reset to prevent overflow
-  }
-
-  totalVolumePoured += totalVolume;
   Serial.println("Pour complete - " + String(totalVolume) + "ml poured");
   resetCounters();
   isPouring = false;
@@ -250,14 +229,4 @@ void PourSystem::update()
     stopPour();
   }
 
-  // Print system stats every 5 seconds
-  if (millis() - lastStatsTime > 5000)
-  {
-    Serial.print("Total pours: ");
-    Serial.print(totalPours);
-    Serial.print(", Total volume: ");
-    Serial.print(totalVolumePoured);
-    Serial.println("ml");
-    lastStatsTime = millis();
-  }
 }

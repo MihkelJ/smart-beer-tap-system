@@ -225,7 +225,7 @@ void loop()
     }
     lastPourState = currentPourState;
   }
-
+  
   // Small delay to prevent overwhelming the system
   delay(100);
 }

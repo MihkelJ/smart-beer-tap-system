@@ -16,8 +16,6 @@ private:
   // Pour tracking variables
   float totalVolume;
   unsigned long pourStartTime;
-  unsigned long totalPours;
-  float totalVolumePoured;
 
   // System state flags
   bool isReady;
@@ -26,7 +24,6 @@ private:
 
   // Timing variables
   unsigned long lastWatchdogTime;
-  unsigned long lastStatsTime;
   static unsigned long lastPulseTime;
 
 public:
