@@ -1,6 +1,11 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+// ThingsBoard attribute keys
+#define TB_CUP_SIZE_ATTR "cupSize"
+#define TB_READY_ATTR "ready"
+#define TB_ML_PER_PULSE_ATTR "mlPerPulse"
+
 // ThingsBoard RPC commands
 #define TB_SET_CUP_SIZE_RPC "setCupSize"
 #define TB_SET_ML_PER_PULSE_RPC "setMlPerPulse"

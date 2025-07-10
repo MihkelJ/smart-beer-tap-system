@@ -171,9 +171,9 @@ void loop()
             rpcSubscribed = true;
 
             // Send initial attributes
-            tb.sendAttributeData("cupSize", 0);
-            tb.sendAttributeData("ready", 1);
-            tb.sendAttributeData("mlPerPulse", pourSystem.getMlPerPulse());
+            tb.sendAttributeData(TB_CUP_SIZE_ATTR, 0);
+            tb.sendAttributeData(TB_READY_ATTR, 1);
+            tb.sendAttributeData(TB_ML_PER_PULSE_ATTR, pourSystem.getMlPerPulse());
           }
           else
           {
@@ -220,7 +220,7 @@ void loop()
     bool currentPourState = pourSystem.getIsPouring();
     if (lastPourState && !currentPourState)
     {
-      tb.sendAttributeData("cupSize", 0);
+      tb.sendAttributeData(TB_CUP_SIZE_ATTR, 0);
       Serial.println("📱 Cup size reset to 0 after pour completion");
     }
     lastPourState = currentPourState;
@@ -243,7 +243,7 @@ void processCupSizeChange(const JsonVariantConst &data, JsonDocument &response)
   // Send attribute update to ThingsBoard
   if (thingsBoardConnected)
   {
-    tb.sendAttributeData("cupSize", value);
+    tb.sendAttributeData(TB_CUP_SIZE_ATTR, value);
     Serial.println("📱 Cup size attribute sent to ThingsBoard: " + String(value) + "ml");
   }
 
@@ -258,7 +258,7 @@ void processMlPerPulseChange(const JsonVariantConst &data, JsonDocument &respons
   // Send attribute update to ThingsBoard
   if (thingsBoardConnected)
   {
-    tb.sendAttributeData("mlPerPulse", value);
+    tb.sendAttributeData(TB_ML_PER_PULSE_ATTR, value);
     Serial.println("📱 ML per pulse attribute sent to ThingsBoard: " + String(value));
   }
 
@@ -274,7 +274,7 @@ void processStopCommand(const JsonVariantConst &data, JsonDocument &response)
     // Reset cup size display on dashboard
     if (thingsBoardConnected)
     {
-      tb.sendAttributeData("cupSize", 0);
+      tb.sendAttributeData(TB_CUP_SIZE_ATTR, 0);
       Serial.println("📱 Dashboard cup size reset to 0");
     }
   }
