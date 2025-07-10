@@ -53,7 +53,7 @@ Edit `src/config.h` and replace these values:
 
 **Get these from ThingsBoard:**
 
-1. **Go to [thingsboard.io](https://thingsboard.io) and create an account** (or use demo.thingsboard.io)
+1. **Go to [thingsboard.io](https://thingsboard.io) and create an account** (or use demo.thingsboard.io for testing)
 2. **Create a new device:**
    - Navigate to Devices → Add Device
    - Name: "Beer Tap" (or whatever you prefer)
@@ -75,14 +75,14 @@ Edit `src/config.h` and replace these values:
    #define THINGSBOARD_ACCESS_TOKEN "YOUR_ACCESS_TOKEN" // ← Replace this
    ```
 
-### 3b. WiFi Credentials
+### 3b. WiFi Configuration
 
-**Use your 2.4GHz WiFi network:**
+**WiFi is now configured automatically using WiFiManager:**
 
-```cpp
-#define WIFI_SSID "YourWiFiName"          // ← Replace this
-#define WIFI_PASSWORD "YourWiFiPassword"  // ← Replace this
-```
+✅ **No hardcoded WiFi credentials needed!**
+- The system creates a "BeerTap-Setup" WiFi network when first powered on
+- Connect to this network to configure your actual WiFi
+- WiFi credentials are stored securely on the ESP32
 
 ⚠️ **Important:** ESP32 only supports 2.4 GHz Wi-Fi, not 5 GHz!
 
@@ -102,6 +102,7 @@ Edit `src/config.h` and replace these values:
    | RPC Button    | setMlPerPulse | Method: setMlPerPulse, Values: 1.0,2.0,3.0    |
    | RPC Button    | stopPour      | Method: stopPour, Value: 1                    |
    | Latest Values | mlPerPulse    | Title: "Calibration (ml/pulse)"               |
+   | RPC Button    | resetWiFi     | Method: resetWiFi, Value: 1                   |
 
 ---
 
@@ -115,6 +116,7 @@ Edit `src/config.h` and replace these values:
 3. **Install required libraries**:
    - Tools → Manage Libraries → Search "ThingsBoard" → Install latest
    - Search "Arduino_MQTT_Client" → Install
+   - Search "WiFiManager" by Tzapu → Install
 4. **Configure Arduino IDE**:
    - Tools → Board → "ESP32 Dev Module"
    - Tools → Port → Select your ESP32 port
@@ -134,6 +136,7 @@ Edit `src/config.h` and replace these values:
 3. **Look for these messages:**
    ```
    🍺 Smart Beer Tap System Starting...
+   📡 Starting WiFi configuration...
    ✅ WiFi connected!
    IP address: xxx.xxx.xxx.xxx
    ✅ ThingsBoard connected!
@@ -141,6 +144,14 @@ Edit `src/config.h` and replace these values:
    ✅ SETUP COMPLETE!
    🍺 Smart Beer Tap ready for operation
    ```
+
+### LED Status Indicators:
+
+- **Fast Blink**: System booting
+- **Double Blink**: WiFi portal active, waiting for connection
+- **Triple Blink**: User configuring WiFi
+- **Heartbeat**: WiFi connected successfully
+- **Slow Pulse**: System ready for operation
 
 ### Successful Startup Sequence:
 
@@ -152,7 +163,7 @@ You should see this progression in the serial monitor:
 4. **RPC Setup**: Command subscription
 5. **Ready State**: System operational
 
-**Total startup time**: Usually 10–30 seconds depending on network conditions.
+**Total startup time**: Usually 10-30 seconds depending on network conditions.
 
 ---
 
@@ -167,7 +178,7 @@ You should see this progression in the serial monitor:
 - Verify the file is saved
 - Remove any template comments or example text
 
-### Problem: Wi-Fi Connection Fails
+### Problem: WiFi Configuration Portal Not Working
 
 **Solutions:**
 
@@ -222,12 +233,20 @@ You should see this progression in the serial monitor:
 
 ---
 
-## 🧪 Step 7: Test Your Setup
+## 🧪 Step 7: Configure WiFi and Test Setup
 
+### WiFi Configuration (First Time):
 1. **Power on ESP32**
-2. **Wait for "SETUP COMPLETE" message in serial monitor**
-3. **Open ThingsBoard dashboard**
-4. **Test basic functions:**
+2. **Look for "BeerTap-Setup" WiFi network** (LED shows double blink)
+3. **Connect to the network** with your phone/laptop
+4. **Browser should automatically open** to 192.168.4.1
+5. **Select your WiFi network** and enter password
+6. **Click Save** - device will connect and restart
+
+### Test Basic Functions:
+1. **Wait for "SETUP COMPLETE" message in serial monitor**
+2. **Open ThingsBoard dashboard**
+3. **Test basic functions:**
    - Send setCupSize RPC with value 100
    - Check serial monitor for confirmation
    - Send stopPour RPC to test emergency stop
