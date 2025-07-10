@@ -259,11 +259,11 @@ void loop()
 
     // Send ready/busy status updates to ThingsBoard if changed
     static int lastReadyBusyStatus = -1;
-    int currentReadyBusyStatus = statusManager.isReady() ? 1 : 0;
+    int currentReadyBusyStatus = statusManager.isReady() ? 0 : 1;
     if (currentReadyBusyStatus != lastReadyBusyStatus)
     {
-      tb.sendAttributeData("ready", currentReadyBusyStatus);
-      Serial.println("📱 Ready/Busy attribute sent to ThingsBoard: " + String(currentReadyBusyStatus == 1 ? "READY" : "BUSY"));
+      tb.sendAttributeData("status", currentReadyBusyStatus);
+      Serial.println("📱 Status attribute sent to ThingsBoard: " + String(currentReadyBusyStatus == 0 ? "READY" : "BUSY"));
       lastReadyBusyStatus = currentReadyBusyStatus;
     }
   }
