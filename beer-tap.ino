@@ -269,12 +269,10 @@ void loop() {
     ledController.setTemporaryState(STATE_POUR_COMPLETE, 3000);
   }
 
-  // Send cup size reset to ThingsBoard when pour completes
-  if (thingsBoardConnected) {
-    if (lastPourState && !currentPourState) {
-      tb.sendAttributeData(TB_CUP_SIZE_ATTR, 0);
-      Serial.println("📱 Cup size reset to 0 after pour completion");
-    }
+  // Send cup size reset to ThingsBoard when needed
+  if (thingsBoardConnected && pourSystem.getNeedsCupSizeReset()) {
+    tb.sendAttributeData(TB_CUP_SIZE_ATTR, 0);
+    Serial.println("📱 Cup size reset to 0 sent to ThingsBoard");
   }
 
   lastPourState = currentPourState;

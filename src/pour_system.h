@@ -19,6 +19,7 @@ class PourSystem {
   // System state flags
   bool isPouring;
   int currentCupSize;
+  bool needsCupSizeReset;
 
   // Timing variables
   unsigned long lastWatchdogTime;
@@ -51,6 +52,11 @@ class PourSystem {
   float getTotalVolume() const { return totalVolume; }
   int getCurrentCupSize() const { return currentCupSize; }
   float getMlPerPulse() const { return mlPerPulse; }
+  bool getNeedsCupSizeReset() { 
+    bool result = needsCupSizeReset; 
+    needsCupSizeReset = false; 
+    return result; 
+  }
 
   // Safety checks
   bool performSafetyChecks(bool wifiConnected, bool thingsBoardConnected);

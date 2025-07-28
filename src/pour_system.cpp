@@ -15,6 +15,7 @@ PourSystem::PourSystem() {
   pourStartTime = 0;
   isPouring = false;
   currentCupSize = 0;
+  needsCupSizeReset = false;
   lastWatchdogTime = 0;
 }
 
@@ -50,6 +51,7 @@ void PourSystem::stopPour() {
   resetCounters();
   isPouring = false;
   currentCupSize = 0;  // Reset cup size
+  needsCupSizeReset = true;  // Flag that ThingsBoard needs to be updated
   // ThingsBoard attribute update will be called from main file
 }
 
@@ -62,6 +64,7 @@ void PourSystem::emergencyStop() {
     resetCounters();
     isPouring = false;
     currentCupSize = 0;  // Reset cup size
+    needsCupSizeReset = true;  // Flag that ThingsBoard needs to be updated
   } else {
     Serial.println("ℹ️ Stop button pressed, but no pour in progress");
   }
